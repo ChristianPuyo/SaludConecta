@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import { useVisits, type CommunityVisit } from '../../context/VisitsContext';
+import { useVisits } from '../../context/VisitsContext';
+import type { CommunityVisit } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 
 export function SyncScreen() {
@@ -9,11 +10,24 @@ export function SyncScreen() {
 
   const renderItem = ({ item }: { item: CommunityVisit }) => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.patientName}</Text>
-      <Text style={styles.cardSubtitle}>{item.community}</Text>
-      <Text style={[styles.status, item.synced ? styles.synced : styles.pending]}>
-        {item.synced ? '✓ Sincronizado' : '⏳ Pendiente'}
-      </Text>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>{item.patientName}</Text>
+        <Text style={[styles.status, item.synced ? styles.synced : styles.pending]}>
+          {item.synced ? '✓ Sincronizado' : '⏳ Pendiente'}
+        </Text>
+      </View>
+      <Text style={styles.cardSubtitle}>{item.community} · {item.date}</Text>
+      <View style={styles.vitalsRow}>
+        <Text style={styles.vitalText}>🌡 {item.temperature || 'N/A'}°C</Text>
+        <Text style={styles.vitalText}>💊 PA: {item.bloodPressure || 'N/A'}</Text>
+        <Text style={styles.vitalText}>🩸 Glucosa: {item.glucose || 'N/A'}</Text>
+      </View>
+      {item.vaccines && item.vaccines.length > 0 && (
+        <Text style={styles.vaccineText}>💉 Vacunas: {item.vaccines.join(', ')}</Text>
+      )}
+      {item.pregnant && (
+        <Text style={styles.pregnantText}>🤰 Embarazada - {item.pregnancyWeeks || '?'} semanas</Text>
+      )}
     </View>
   );
 
@@ -55,11 +69,16 @@ const styles = StyleSheet.create({
   syncButton: { backgroundColor: colors.secondary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
   syncButtonDisabled: { backgroundColor: colors.border },
   syncButtonText: { color: '#fff', fontWeight: '700' },
-  card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 12 },
+  card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 12, gap: 4 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  cardSubtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 6 },
-  status: { fontSize: 13, fontWeight: '600' },
+  cardSubtitle: { fontSize: 12, color: colors.textSecondary },
+  status: { fontSize: 12, fontWeight: '600' },
   synced: { color: colors.success },
   pending: { color: colors.warning },
+  vitalsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  vitalText: { fontSize: 11, color: colors.textSecondary },
+  vaccineText: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  pregnantText: { fontSize: 11, color: '#BE185D', fontWeight: '600', marginTop: 2 },
   empty: { textAlign: 'center', color: colors.textSecondary, marginTop: 40 },
 });

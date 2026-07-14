@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CitizenHomeScreen } from '../screens/citizen/CitizenHomeScreen';
 import { ReportSymptomsScreen } from '../screens/citizen/ReportSymptomsScreen';
 import { MyReportsScreen } from '../screens/citizen/MyReportsScreen';
+import { SmartCampaignsScreen } from '../screens/citizen/SmartCampaignsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
 import { colors } from '../theme/colors';
 
@@ -11,6 +12,7 @@ export type CitizenTabParamList = {
   Home: undefined;
   ReportSymptoms: undefined;
   MyReports: undefined;
+  Campaigns: undefined;
 };
 
 const Tab = createBottomTabNavigator<CitizenTabParamList>();
@@ -45,6 +47,14 @@ export function CitizenNavigator() {
         options={{
           title: 'Mis Reportes',
           tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="Campaigns"
+        component={SmartCampaignsScreen}
+        options={{
+          title: 'Campañas',
+          tabBarIcon: ({ color, size }) => <Ionicons name="megaphone-outline" color={color} size={size} />,
         }}
       />
     </Tab.Navigator>
