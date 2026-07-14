@@ -41,7 +41,7 @@ export function AgentHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20, gap: 16 },
   title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 15, color: colors.textSecondary },

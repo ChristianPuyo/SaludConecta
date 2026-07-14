@@ -67,7 +67,7 @@ export function AuthorityDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20, gap: 16 },
   title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary },

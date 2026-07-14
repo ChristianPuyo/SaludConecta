@@ -1,15 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRole } from '../context/RoleContext';
 import { ROLE_OPTIONS } from '../types/role';
 import { colors } from '../theme/colors';
+
+const logoImage = require('../../assets/fondo pri.jpg');
 
 export function RoleSelectorScreen() {
   const { selectRole } = useRole();
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image source={logoImage} style={styles.logo} resizeMode="contain" />
+      </View>
       <Text style={styles.appName}>Guardian Salud AI</Text>
       <Text style={styles.tagline}>SaludConecta · Vigilancia epidemiológica para la Amazonía</Text>
 
@@ -34,9 +39,11 @@ export function RoleSelectorScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: colors.background, padding: 24, justifyContent: 'center', gap: 12 },
+  container: { flexGrow: 1, backgroundColor: 'transparent', padding: 24, justifyContent: 'center', gap: 12 },
+  logoContainer: { alignItems: 'center', marginBottom: 14 },
+  logo: { width: 112, height: 112, borderRadius: 28, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff' },
   appName: { fontSize: 28, fontWeight: '800', color: colors.primaryDark, textAlign: 'center' },
-  tagline: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 },
+  tagline: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 8, marginBottom: 16 },
   prompt: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
   optionsList: { gap: 12 },
   card: {

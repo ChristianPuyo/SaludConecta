@@ -36,7 +36,7 @@ export function AlertsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20 },
   header: { marginBottom: 12, gap: 4 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },

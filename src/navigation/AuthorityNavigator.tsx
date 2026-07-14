@@ -21,6 +21,9 @@ export function AuthorityNavigator() {
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
         tabBarActiveTintColor: colors.primary,
+        headerStyle: { backgroundColor: 'transparent' },
+        headerTintColor: colors.textPrimary,
+        tabBarStyle: { backgroundColor: 'rgba(255,255,255,0.85)', borderTopColor: 'transparent' },
       }}
     >
       <Tab.Screen

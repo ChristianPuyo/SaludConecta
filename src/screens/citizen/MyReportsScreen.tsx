@@ -33,7 +33,7 @@ export function MyReportsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20, gap: 12 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
   card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 6, borderWidth: 1, borderColor: colors.border, marginBottom: 12 },

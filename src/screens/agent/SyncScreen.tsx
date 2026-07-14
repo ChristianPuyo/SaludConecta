@@ -47,7 +47,7 @@ export function SyncScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20 },
   header: { gap: 8, marginBottom: 16 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },

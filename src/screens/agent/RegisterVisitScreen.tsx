@@ -68,7 +68,7 @@ export function RegisterVisitScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 20, gap: 4 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 12 },
   fieldGroup: { marginBottom: 12 },
