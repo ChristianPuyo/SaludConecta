@@ -20,7 +20,23 @@ export function CitizenNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
+        headerTitleStyle: {
+          fontWeight: '800',
+          color: colors.textPrimary,
+        },
         tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
+          borderTopColor: '#E2E8F0',
+          backgroundColor: '#FFFFFF',
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+        },
       }}
     >
       <Tab.Screen

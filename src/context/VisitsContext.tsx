@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface CommunityVisit {
   id: string;
@@ -17,27 +18,59 @@ interface VisitsContextValue {
   addVisit: (visit: Omit<CommunityVisit, 'id' | 'synced'>) => void;
   syncAll: () => Promise<void>;
   isSyncing: boolean;
+  isLoading: boolean;
 }
+
+const VISITS_STORAGE_KEY = '@saludconecta/visits';
 
 const VisitsContext = createContext<VisitsContextValue | undefined>(undefined);
 
 export function VisitsProvider({ children }: { children: React.ReactNode }) {
   const [visits, setVisits] = useState<CommunityVisit[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const storedVisits = await AsyncStorage.getItem(VISITS_STORAGE_KEY);
+        if (storedVisits) {
+          setVisits(JSON.parse(storedVisits));
+        }
+      } catch (error) {
+        console.error('Error loading visits:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
 
   const addVisit = (visit: Omit<CommunityVisit, 'id' | 'synced'>) => {
-    setVisits((prev) => [{ ...visit, id: Date.now().toString(), synced: false }, ...prev]);
+    setVisits((prev) => {
+      const updated = [{ ...visit, id: Date.now().toString(), synced: false }, ...prev];
+      AsyncStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(updated)).catch((err) =>
+        console.error('Error saving visit:', err)
+      );
+      return updated;
+    });
   };
 
   const syncAll = async () => {
     setIsSyncing(true);
+    // Simulate API request delay
     await new Promise((resolve) => setTimeout(resolve, 1200));
-    setVisits((prev) => prev.map((v) => ({ ...v, synced: true })));
+    setVisits((prev) => {
+      const updated = prev.map((v) => ({ ...v, synced: true }));
+      AsyncStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(updated)).catch((err) =>
+        console.error('Error saving synced visits:', err)
+      );
+      return updated;
+    });
     setIsSyncing(false);
   };
 
   return (
-    <VisitsContext.Provider value={{ visits, addVisit, syncAll, isSyncing }}>
+    <VisitsContext.Provider value={{ visits, addVisit, syncAll, isSyncing, isLoading }}>
       {children}
     </VisitsContext.Provider>
   );
