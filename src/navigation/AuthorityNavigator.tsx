@@ -1,26 +1,25 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthorityDashboardScreen } from '../screens/authority/AuthorityDashboardScreen';
 import { RiskMapScreen } from '../screens/authority/RiskMapScreen';
 import { AlertsScreen } from '../screens/authority/AlertsScreen';
-import { SwitchRoleButton } from '../components/SwitchRoleButton';
+import { ProfileScreen } from '../screens/ProfileScreen';
 import { colors } from '../theme/colors';
-
-export type AuthorityTabParamList = {
-  Dashboard: undefined;
-  RiskMap: undefined;
-  Alerts: undefined;
-};
+import { AuthorityTabParamList, AuthorityStackParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<AuthorityTabParamList>();
+const Stack = createNativeStackNavigator<AuthorityStackParamList>();
 
-export function AuthorityNavigator() {
+function AuthorityTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerRight: () => <SwitchRoleButton />,
         tabBarActiveTintColor: colors.primary,
+        headerTitleAlign: 'center',
+        headerStyle: { backgroundColor: colors.surface },
+        headerTitleStyle: { fontWeight: '800', color: colors.textPrimary },
       }}
     >
       <Tab.Screen
@@ -32,7 +31,15 @@ export function AuthorityNavigator() {
         }}
       />
       <Tab.Screen
-        name="RiskMap"
+        name="Estadísticas"
+        component={AlertsScreen}
+        options={{
+          title: 'Estadísticas',
+          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="Mapa"
         component={RiskMapScreen}
         options={{
           title: 'Mapa de Riesgo',
@@ -40,13 +47,27 @@ export function AuthorityNavigator() {
         }}
       />
       <Tab.Screen
-        name="Alerts"
-        component={AlertsScreen}
+        name="Profile"
+        component={ProfileScreen}
         options={{
-          title: 'Alertas',
-          tabBarIcon: ({ color, size }) => <Ionicons name="warning-outline" color={color} size={size} />,
+          title: 'Perfil',
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" color={color} size={size} />,
         }}
       />
     </Tab.Navigator>
   );
 }
+
+export function AuthorityNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AuthorityTabs"
+        component={AuthorityTabNavigator}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+

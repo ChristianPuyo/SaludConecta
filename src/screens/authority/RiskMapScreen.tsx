@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { MOCK_DISTRICT_RISK } from '../../data/mockData';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
+import { SafeScreen } from '../../components/SafeScreen';
+import { Card } from '../../components/Card';
 
 export function RiskMapScreen() {
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeScreen scrollable contentContainerStyle={styles.content}>
       <Text style={styles.title}>Mapa de riesgo</Text>
       <Text style={styles.subtitle}>
         Vista previa por distrito. La integración con mapa geoespacial interactivo está en desarrollo.
@@ -28,20 +30,19 @@ export function RiskMapScreen() {
       </View>
 
       {MOCK_DISTRICT_RISK.map((district) => (
-        <View key={district.district} style={styles.card}>
+        <Card key={district.district} style={styles.card}>
           <View>
             <Text style={styles.cardTitle}>{district.district}</Text>
             <Text style={styles.cardSubtitle}>{district.cases} casos activos</Text>
           </View>
           <RiskBadge level={district.risk} />
-        </View>
+        </Card>
       ))}
-    </ScrollView>
+    </SafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 12 },
   title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 4 },
@@ -50,11 +51,6 @@ const styles = StyleSheet.create({
   dot: { width: 10, height: 10, borderRadius: 999 },
   legendText: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -62,3 +58,4 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   cardSubtitle: { fontSize: 12, color: colors.textSecondary },
 });
+

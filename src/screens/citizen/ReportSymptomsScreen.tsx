@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useReports } from '../../context/ReportsContext';
 import { colors } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
-import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
+import type { CitizenTabParamList } from '../../types/navigation';
+import { SafeScreen } from '../../components/SafeScreen';
+import { InputField } from '../../components/InputField';
+import { Button } from '../../components/Button';
+import { Pressable } from 'react-native';
+import { classifyRisk } from '../../utils/epidemiology';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'ReportSymptoms'>;
 
 const SYMPTOMS = ['Fiebre', 'Diarrea', 'Tos', 'Vómitos', 'Dolor muscular', 'Dolor de cabeza'];
 
-function classifyRisk(symptomCount: number, hasFever: boolean): RiskLevel {
-  if (symptomCount >= 3 && hasFever) return 'alto';
-  if (symptomCount >= 2) return 'medio';
-  return 'bajo';
-}
 
 export function ReportSymptomsScreen() {
   const navigation = useNavigation<Nav>();
@@ -32,7 +32,7 @@ export function ReportSymptomsScreen() {
 
   const handleSubmit = () => {
     if (selected.length === 0) {
-      Alert.alert('Selecciona al menos un síntoma');
+      Alert.alert('Falta información', 'Selecciona al menos un síntoma para enviar el reporte.');
       return;
     }
     const risk = classifyRisk(selected.length, selected.includes('Fiebre'));
@@ -54,7 +54,12 @@ export function ReportSymptomsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeScreen
+      scrollable
+      keyboardAvoiding
+      dismissKeyboardOnTap
+      contentContainerStyle={styles.content}
+    >
       <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
       <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
 
@@ -65,7 +70,11 @@ export function ReportSymptomsScreen() {
             <Pressable
               key={symptom}
               onPress={() => toggleSymptom(symptom)}
-              style={[styles.chip, active && styles.chipActive]}
+              style={({ pressed }) => [
+                styles.chip,
+                active && styles.chipActive,
+                pressed && styles.chipPressed,
+              ]}
             >
               <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
             </Pressable>
@@ -73,34 +82,39 @@ export function ReportSymptomsScreen() {
         })}
       </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Distrito"
-        placeholderTextColor={colors.textSecondary}
-        value={district}
-        onChangeText={setDistrict}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Comunidad"
-        placeholderTextColor={colors.textSecondary}
-        value={community}
-        onChangeText={setCommunity}
-      />
+      <View style={styles.form}>
+        <InputField
+          label="Distrito"
+          placeholder="Ej. Callería"
+          icon="map-outline"
+          value={district}
+          onChangeText={setDistrict}
+        />
+        
+        <InputField
+          label="Comunidad / Sector"
+          placeholder="Ej. San Francisco"
+          icon="home-outline"
+          value={community}
+          onChangeText={setCommunity}
+        />
 
-      <Pressable style={styles.primaryButton} onPress={handleSubmit}>
-        <Text style={styles.primaryButtonText}>Enviar reporte</Text>
-      </Pressable>
-    </ScrollView>
+        <Button
+          title="Enviar reporte"
+          onPress={handleSubmit}
+          icon="paper-plane-outline"
+          style={styles.primaryButton}
+        />
+      </View>
+    </SafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 12 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 12 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -110,17 +124,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipPressed: { opacity: 0.75 },
   chipText: { color: colors.textPrimary, fontWeight: '600' },
   chipTextActive: { color: '#fff' },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-  },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  form: { gap: 8 },
+  primaryButton: { marginTop: 12 },
 });
+

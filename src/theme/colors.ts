@@ -1,13 +1,22 @@
 export const colors = {
   primary: '#0F766E',
   primaryDark: '#115E59',
+  primaryLight: '#F0FDFA',
   secondary: '#2563EB',
+  secondaryLight: '#EFF6FF',
   danger: '#DC2626',
+  dangerLight: '#FEE2E2',
   warning: '#D97706',
+  warningLight: '#FEF3C7',
   success: '#16A34A',
+  successLight: '#DCFCE7',
   background: '#F8FAFC',
   surface: '#FFFFFF',
   textPrimary: '#0F172A',
   textSecondary: '#475569',
   border: '#E2E8F0',
+  disabled: '#94A3B8',
+  disabledBackground: '#F1F5F9',
+  infoLight: '#EEF2FF',
 };
+
