@@ -1,13 +1,24 @@
 export const colors = {
-  primary: '#0F766E',
-  primaryDark: '#115E59',
+  // Paleta principal según diseño
+  primaryDark: '#064E4A',      // Verde oscuro
+  primary: '#15977F',           // Verde principal
+  blue: '#2477CC',              // Azul
+  purple: '#8050BD',            // Morado
+  
+  // Colores complementarios
   secondary: '#2563EB',
   danger: '#DC2626',
   warning: '#D97706',
   success: '#16A34A',
-  background: '#F8FAFC',
+  
+  // Fondos y superficies
+  background: '#F8FAFB',
   surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  border: '#E2E8F0',
+  
+  // Texto
+  textPrimary: '#102E33',
+  textSecondary: '#52636D',
+  
+  // Bordes
+  border: '#DDE5E8',
 };
