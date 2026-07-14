@@ -60,6 +60,6 @@ const styles = StyleSheet.create({
   cardSubtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 6 },
   status: { fontSize: 13, fontWeight: '600' },
   synced: { color: colors.success },
-  pending: { color: colors.warning },
+  pending: { color: colors.warningText },
   empty: { textAlign: 'center', color: colors.textSecondary, marginTop: 40 },
 });

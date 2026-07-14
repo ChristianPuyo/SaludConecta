@@ -24,7 +24,7 @@ export function AgentHomeScreen() {
           <Text style={styles.statLabel}>Visitas registradas</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={[styles.statNumber, pending > 0 && { color: colors.warning }]}>{pending}</Text>
+          <Text style={[styles.statNumber, pending > 0 && { color: colors.warningText }]}>{pending}</Text>
           <Text style={styles.statLabel}>Pendientes de sincronizar</Text>
         </View>
       </View>

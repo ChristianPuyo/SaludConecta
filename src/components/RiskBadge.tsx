@@ -6,7 +6,7 @@ export type RiskLevel = 'bajo' | 'medio' | 'alto';
 
 const RISK_STYLES: Record<RiskLevel, { bg: string; text: string; label: string }> = {
   bajo: { bg: '#DCFCE7', text: colors.success, label: 'Riesgo bajo' },
-  medio: { bg: '#FEF3C7', text: colors.warning, label: 'Riesgo medio' },
+  medio: { bg: '#FEF3C7', text: colors.warningText, label: 'Riesgo medio' },
   alto: { bg: '#FEE2E2', text: colors.danger, label: 'Riesgo alto' },
 };
 
