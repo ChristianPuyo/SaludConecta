@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useReports } from '../../context/ReportsContext';
-import { colors } from '../../theme/colors';
+import { colors, shadows } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
 
@@ -23,6 +24,8 @@ export function ReportSymptomsScreen() {
   const [selected, setSelected] = useState<string[]>([]);
   const [district, setDistrict] = useState('');
   const [community, setCommunity] = useState('');
+  const [districtFocused, setDistrictFocused] = useState(false);
+  const [communityFocused, setCommunityFocused] = useState(false);
 
   const toggleSymptom = (symptom: string) => {
     setSelected((prev) =>
@@ -30,16 +33,16 @@ export function ReportSymptomsScreen() {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selected.length === 0) {
-      Alert.alert('Selecciona al menos un síntoma');
+      Alert.alert('Selección vacía', 'Por favor, selecciona al menos un síntoma para continuar.');
       return;
     }
     const risk = classifyRisk(selected.length, selected.includes('Fiebre'));
-    addReport({
+    await addReport({
       id: Date.now().toString(),
       date: 'Hoy',
-      district: district || 'Callería',
+      district: district.trim() || 'Callería',
       symptoms: selected,
       risk,
     });
@@ -54,73 +57,149 @@ export function ReportSymptomsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
-      <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
+        <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas en este momento</Text>
 
-      <View style={styles.chipsWrap}>
-        {SYMPTOMS.map((symptom) => {
-          const active = selected.includes(symptom);
-          return (
-            <Pressable
-              key={symptom}
-              onPress={() => toggleSymptom(symptom)}
-              style={[styles.chip, active && styles.chipActive]}
-            >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        <View style={styles.chipsWrap}>
+          {SYMPTOMS.map((symptom) => {
+            const active = selected.includes(symptom);
+            return (
+              <Pressable
+                key={symptom}
+                onPress={() => toggleSymptom(symptom)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <View style={styles.chipInner}>
+                  {active && <Ionicons name="checkmark-circle" size={16} color="#fff" style={styles.chipIcon} />}
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Distrito"
-        placeholderTextColor={colors.textSecondary}
-        value={district}
-        onChangeText={setDistrict}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Comunidad"
-        placeholderTextColor={colors.textSecondary}
-        value={community}
-        onChangeText={setCommunity}
-      />
+        <Text style={styles.sectionLabel}>Ubicación del reporte</Text>
+        
+        <View style={[styles.inputWrapper, districtFocused && styles.inputWrapperFocused]}>
+          <Ionicons 
+            name="map-outline" 
+            size={18} 
+            color={districtFocused ? colors.primary : colors.textMuted} 
+            style={styles.inputIcon} 
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Distrito (Ej. Callería)"
+            placeholderTextColor={colors.textPlaceholder}
+            value={district}
+            onChangeText={setDistrict}
+            onFocus={() => setDistrictFocused(true)}
+            onBlur={() => setDistrictFocused(false)}
+          />
+        </View>
 
-      <Pressable style={styles.primaryButton} onPress={handleSubmit}>
-        <Text style={styles.primaryButtonText}>Enviar reporte</Text>
-      </Pressable>
-    </ScrollView>
+        <View style={[styles.inputWrapper, communityFocused && styles.inputWrapperFocused]}>
+          <Ionicons 
+            name="home-outline" 
+            size={18} 
+            color={communityFocused ? colors.primary : colors.textMuted} 
+            style={styles.inputIcon} 
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Comunidad / Asentamiento Humano"
+            placeholderTextColor={colors.textPlaceholder}
+            value={community}
+            onChangeText={setCommunity}
+            onFocus={() => setCommunityFocused(true)}
+            onBlur={() => setCommunityFocused(false)}
+          />
+        </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.primaryButtonPressed,
+          ]}
+          onPress={handleSubmit}
+        >
+          <Ionicons name="paper-plane" size={18} color="#fff" />
+          <Text style={styles.primaryButtonText}>Enviar reporte a la comunidad</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, gap: 12 },
-  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  content: { padding: 20, gap: 14 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 10, lineHeight: 18 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    ...shadows.sm,
   },
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.textPrimary, fontWeight: '600' },
+  chipInner: { flexDirection: 'row', alignItems: 'center' },
+  chipIcon: { marginRight: 6 },
+  chipText: { color: colors.textPrimary, fontWeight: '700', fontSize: 13 },
   chipTextActive: { color: '#fff' },
-  input: {
-    borderWidth: 1,
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 12, marginBottom: 2, marginLeft: 2 },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 16,
     backgroundColor: colors.surface,
-    color: colors.textPrimary,
+    paddingHorizontal: 14,
+    ...shadows.sm,
   },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  inputWrapperFocused: {
+    borderColor: colors.primary,
+  },
+  inputIcon: { marginRight: 10 },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  primaryButton: { 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primary, 
+    borderRadius: 16, 
+    paddingVertical: 16, 
+    marginVertical: 16, 
+    shadowColor: colors.primary, 
+    shadowOffset: { width: 0, height: 4 }, 
+    shadowOpacity: 0.15, 
+    shadowRadius: 8, 
+    elevation: 2 
+  },
+  primaryButtonPressed: { backgroundColor: colors.primaryDark, opacity: 0.95, transform: [{ scale: 0.98 }] },
+  primaryButtonText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: -0.2 },
 });
+

@@ -20,7 +20,31 @@ export function AuthorityNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
+        headerStyle: {
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        headerTitleStyle: {
+          fontWeight: '800',
+          color: colors.textPrimary,
+          fontSize: 17,
+        },
+        headerShadowVisible: false,
         tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
       }}
     >
       <Tab.Screen

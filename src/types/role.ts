@@ -1,10 +1,13 @@
+import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+
 export type UserRole = 'citizen' | 'agent' | 'authority';
 
 export interface RoleOption {
   id: UserRole;
   title: string;
   description: string;
-  icon: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
 }
 
 export const ROLE_OPTIONS: RoleOption[] = [
@@ -27,3 +30,4 @@ export const ROLE_OPTIONS: RoleOption[] = [
     icon: 'bar-chart-outline',
   },
 ];
+
