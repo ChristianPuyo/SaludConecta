@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { HealthApiService } from '../services/healthApi';
 
 export interface CommunityVisit {
   id: string;
@@ -9,6 +10,8 @@ export interface CommunityVisit {
   temperature: string;
   weight: string;
   height: string;
+  isPregnant: boolean;
+  vaccinesUpToDate: boolean;
   synced: boolean;
 }
 
@@ -25,15 +28,42 @@ export function VisitsProvider({ children }: { children: React.ReactNode }) {
   const [visits, setVisits] = useState<CommunityVisit[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await HealthApiService.getVisits();
+        setVisits(data);
+      } catch (error) {
+        console.error('Error loading visits:', error);
+      }
+    })();
+  }, []);
+
   const addVisit = (visit: Omit<CommunityVisit, 'id' | 'synced'>) => {
-    setVisits((prev) => [{ ...visit, id: Date.now().toString(), synced: false }, ...prev]);
+    const newVisit: CommunityVisit = {
+      ...visit,
+      id: Date.now().toString(),
+      synced: false,
+    };
+    setVisits((prev) => {
+      const updated = [newVisit, ...prev];
+      HealthApiService.saveVisit(newVisit).catch((err) =>
+        console.error('Error saving visit in service:', err)
+      );
+      return updated;
+    });
   };
 
   const syncAll = async () => {
     setIsSyncing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setVisits((prev) => prev.map((v) => ({ ...v, synced: true })));
-    setIsSyncing(false);
+    try {
+      const updatedVisits = await HealthApiService.syncVisits(visits);
+      setVisits(updatedVisits);
+    } catch (error) {
+      console.error('Error syncing visits in service:', error);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -50,3 +80,4 @@ export function useVisits() {
   }
   return context;
 }
+

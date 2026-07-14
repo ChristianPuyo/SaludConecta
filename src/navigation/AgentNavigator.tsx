@@ -5,6 +5,7 @@ import { AgentHomeScreen } from '../screens/agent/AgentHomeScreen';
 import { RegisterVisitScreen } from '../screens/agent/RegisterVisitScreen';
 import { SyncScreen } from '../screens/agent/SyncScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
+import { BackButton } from '../components/BackButton';
 import { colors } from '../theme/colors';
 
 export type AgentTabParamList = {
@@ -19,6 +20,7 @@ export function AgentNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
+        headerLeft: () => <BackButton />,
         headerRight: () => <SwitchRoleButton />,
         tabBarActiveTintColor: colors.primary,
       }}

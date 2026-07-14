@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { MOCK_DISTRICT_RISK } from '../../data/mockData';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { HealthApiService } from '../../services/healthApi';
+import type { DistrictRisk } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 
 const RISK_COLOR: Record<string, string> = {
@@ -10,9 +11,33 @@ const RISK_COLOR: Record<string, string> = {
 };
 
 export function AuthorityDashboardScreen() {
-  const totalCases = MOCK_DISTRICT_RISK.reduce((sum, d) => sum + d.cases, 0);
-  const alertDistricts = MOCK_DISTRICT_RISK.filter((d) => d.risk === 'alto').length;
-  const maxCases = Math.max(...MOCK_DISTRICT_RISK.map((d) => d.cases));
+  const [risks, setRisks] = useState<DistrictRisk[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await HealthApiService.getDistrictRisks();
+        setRisks(data);
+      } catch (error) {
+        console.error('Error fetching dashboard risks:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  const totalCases = risks.reduce((sum, d) => sum + d.cases, 0);
+  const alertDistricts = risks.filter((d) => d.risk === 'alto').length;
+  const maxCases = risks.length > 0 ? Math.max(...risks.map((d) => d.cases)) : 1;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -29,14 +54,14 @@ export function AuthorityDashboardScreen() {
           <Text style={styles.kpiLabel}>Distritos en alerta</Text>
         </View>
         <View style={styles.kpiCard}>
-          <Text style={styles.kpiNumber}>{MOCK_DISTRICT_RISK.length}</Text>
+          <Text style={styles.kpiNumber}>{risks.length}</Text>
           <Text style={styles.kpiLabel}>Distritos monitoreados</Text>
         </View>
       </View>
 
       <Text style={styles.sectionTitle}>Incidencia por distrito</Text>
       <View style={styles.card}>
-        {MOCK_DISTRICT_RISK.map((district) => (
+        {risks.map((district) => (
           <View key={district.district} style={styles.barRow}>
             <Text style={styles.barLabel}>{district.district}</Text>
             <View style={styles.barTrack}>
@@ -68,6 +93,7 @@ export function AuthorityDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   content: { padding: 20, gap: 16 },
   title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary },

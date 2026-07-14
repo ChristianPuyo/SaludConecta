@@ -4,13 +4,37 @@ export interface SymptomReport {
   id: string;
   date: string;
   district: string;
+  community?: string;
+  age?: number;
+  sex?: string;
   symptoms: string[];
   risk: RiskLevel;
+  reasoning?: string;
 }
 
 export const MOCK_CITIZEN_REPORTS: SymptomReport[] = [
-  { id: '1', date: 'Hace 2 días', district: 'Callería', symptoms: ['Fiebre', 'Dolor muscular'], risk: 'medio' },
-  { id: '2', date: 'Hace 3 semanas', district: 'Callería', symptoms: ['Tos'], risk: 'bajo' },
+  { 
+    id: '1', 
+    date: 'Hace 2 días', 
+    district: 'Callería', 
+    community: 'San José',
+    age: 28,
+    sex: 'Masculino',
+    symptoms: ['Fiebre', 'Dolor muscular'], 
+    risk: 'medio',
+    reasoning: 'Presenta fiebre combinada con dolor muscular, síntomas compatibles con infecciones virales como el Dengue en etapa inicial. Se recomienda monitorear temperatura e hidratación.'
+  },
+  { 
+    id: '2', 
+    date: 'Hace 3 semanas', 
+    district: 'Callería', 
+    community: 'Yarinacocha Sector 2',
+    age: 45,
+    sex: 'Femenino',
+    symptoms: ['Tos'], 
+    risk: 'bajo',
+    reasoning: 'Sintomatología respiratoria leve aislada. Sin fiebre ni signos de alarma. Se sugiere descanso y monitoreo preventivo.'
+  },
 ];
 
 export interface DistrictRisk {

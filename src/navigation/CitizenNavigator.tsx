@@ -3,13 +3,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { CitizenHomeScreen } from '../screens/citizen/CitizenHomeScreen';
 import { ReportSymptomsScreen } from '../screens/citizen/ReportSymptomsScreen';
+import { IaScannerScreen } from '../screens/citizen/IaScannerScreen';
 import { MyReportsScreen } from '../screens/citizen/MyReportsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
+import { BackButton } from '../components/BackButton';
 import { colors } from '../theme/colors';
 
 export type CitizenTabParamList = {
   Home: undefined;
   ReportSymptoms: undefined;
+  Scanner: undefined;
   MyReports: undefined;
 };
 
@@ -19,6 +22,7 @@ export function CitizenNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
+        headerLeft: () => <BackButton />,
         headerRight: () => <SwitchRoleButton />,
         tabBarActiveTintColor: colors.primary,
       }}
@@ -37,6 +41,14 @@ export function CitizenNavigator() {
         options={{
           title: 'Reportar',
           tabBarIcon: ({ color, size }) => <Ionicons name="add-circle-outline" color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="Scanner"
+        component={IaScannerScreen}
+        options={{
+          title: 'Escanear IA',
+          tabBarIcon: ({ color, size }) => <Ionicons name="camera-outline" color={color} size={size} />,
         }}
       />
       <Tab.Screen

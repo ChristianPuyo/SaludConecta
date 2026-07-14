@@ -5,6 +5,7 @@ import { AuthorityDashboardScreen } from '../screens/authority/AuthorityDashboar
 import { RiskMapScreen } from '../screens/authority/RiskMapScreen';
 import { AlertsScreen } from '../screens/authority/AlertsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
+import { BackButton } from '../components/BackButton';
 import { colors } from '../theme/colors';
 
 export type AuthorityTabParamList = {
@@ -19,6 +20,7 @@ export function AuthorityNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
+        headerLeft: () => <BackButton />,
         headerRight: () => <SwitchRoleButton />,
         tabBarActiveTintColor: colors.primary,
       }}

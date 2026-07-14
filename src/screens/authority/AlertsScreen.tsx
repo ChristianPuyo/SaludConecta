@@ -1,10 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { MOCK_ALERTS, type EpidemicAlert } from '../../data/mockData';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { HealthApiService } from '../../services/healthApi';
+import type { EpidemicAlert } from '../../data/mockData';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
 
 export function AlertsScreen() {
+  const [alerts, setAlerts] = useState<EpidemicAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await HealthApiService.getAlerts();
+        setAlerts(data);
+      } catch (error) {
+        console.error('Error fetching alerts:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   const renderItem = ({ item }: { item: EpidemicAlert }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -16,11 +33,19 @@ export function AlertsScreen() {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <FlatList
       style={styles.container}
       contentContainerStyle={styles.content}
-      data={MOCK_ALERTS}
+      data={alerts}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       ListHeaderComponent={
@@ -37,6 +62,7 @@ export function AlertsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   content: { padding: 20 },
   header: { marginBottom: 12, gap: 4 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },

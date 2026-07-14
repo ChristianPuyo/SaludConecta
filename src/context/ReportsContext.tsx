@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
-import { MOCK_CITIZEN_REPORTS, type SymptomReport } from '../data/mockData';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { HealthApiService } from '../services/healthApi';
+import type { SymptomReport } from '../data/mockData';
 
 interface ReportsContextValue {
   reports: SymptomReport[];
@@ -9,10 +10,27 @@ interface ReportsContextValue {
 const ReportsContext = createContext<ReportsContextValue | undefined>(undefined);
 
 export function ReportsProvider({ children }: { children: React.ReactNode }) {
-  const [reports, setReports] = useState<SymptomReport[]>(MOCK_CITIZEN_REPORTS);
+  const [reports, setReports] = useState<SymptomReport[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await HealthApiService.getReports();
+        setReports(data);
+      } catch (error) {
+        console.error('Error loading reports:', error);
+      }
+    })();
+  }, []);
 
   const addReport = (report: SymptomReport) => {
-    setReports((prev) => [report, ...prev]);
+    setReports((prev) => {
+      const updated = [report, ...prev];
+      HealthApiService.saveReport(report).catch((err) =>
+        console.error('Error saving report in service:', err)
+      );
+      return updated;
+    });
   };
 
   return <ReportsContext.Provider value={{ reports, addReport }}>{children}</ReportsContext.Provider>;
@@ -25,3 +43,4 @@ export function useReports() {
   }
   return context;
 }
+
