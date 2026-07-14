@@ -1,0 +1,147 @@
+Guardian Salud AI
+Sistema Inteligente de Vigilancia Epidemiológica y Prevención Temprana mediante Inteligencia Artificial para la Amazonía Peruana
+Fíjate que ya no hablo de una aplicación.
+Hablo de un sistema inteligente.
+Eso cambia completamente la percepción del proyecto.
+
+¿Qué problema resuelve?
+Aquí está la diferencia.
+No queremos resolver:
+"La gente demora en sacar citas."
+Eso es un problema administrativo.
+Queremos resolver un problema mucho mayor.
+Los brotes epidemiológicos se detectan cuando ya existen decenas o cientos de personas enfermas.
+Ese sí es un problema de salud pública.
+Y además afecta directamente a Ucayali.
+
+¿Cómo funcionaría?
+Imagina tres aplicaciones conectadas.
+Aplicación del ciudadano
+Cada persona puede reportar:
+* fiebre 
+* diarrea 
+* tos 
+* vómitos 
+* dolor muscular 
+* dolor de cabeza 
+Además puede registrar:
+* edad 
+* sexo 
+* distrito 
+* comunidad 
+La IA clasifica automáticamente el riesgo.
+
+Aplicación del agente comunitario
+Los agentes de salud recorren comunidades.
+Registran:
+* vacunas 
+* embarazos 
+* presión arterial 
+* glucosa 
+* temperatura 
+* peso 
+* talla 
+Todo funciona sin Internet.
+Cuando llegan al centro de salud:
+se sincroniza.
+Eso resuelve un problema muy real en la Amazonía.
+
+Plataforma web
+Aquí ocurre la magia.
+No es simplemente un panel administrativo.
+Es un centro inteligente de análisis.
+
+¿Qué hace la IA?
+Aquí está la innovación.
+No responde preguntas.
+Eso ya lo hace ChatGPT.
+Nuestra IA analiza información.
+Por ejemplo.
+En una semana aparecen:
+* 35 personas 
+con fiebre
+en el mismo barrio.
+La IA detecta el patrón.
+Y genera automáticamente una alerta.
+Posible brote de dengue.
+Eso puede ayudar a que el personal de salud actúe antes.
+
+Analítica Predictiva
+Esto me entusiasma mucho.
+Supongamos que durante tres años observamos que:
+Cada noviembre:
+aumentan los casos de dengue.
+La IA aprende ese patrón.
+Y puede advertir:
+En las próximas semanas existe alta probabilidad de incremento de casos en el distrito X.
+No asegura que ocurrirá, pero identifica tendencias basadas en datos históricos y actuales.
+
+Mapas Inteligentes
+No mostraría una lista de pacientes.
+Mostraría un mapa de Ucayali.
+Con colores.
+Rojo.
+Amarillo.
+Verde.
+Donde se vea:
+* enfermedades respiratorias 
+* diarreas 
+* dengue 
+* malaria 
+* leptospirosis 
+Visualmente impacta muchísimo.
+En una sustentación eso vale oro.
+
+IA de Riesgo
+Cada paciente recibe automáticamente un nivel de riesgo.
+No un diagnóstico.
+Eso es importante.
+Solo una clasificación.
+Por ejemplo:
+Riesgo bajo.
+Riesgo medio.
+Riesgo alto.
+Y el sistema explica por qué se clasificó así.
+
+Campañas Inteligentes
+Aquí viene otra idea.
+Supongamos que aparecen muchos casos respiratorios.
+La IA genera automáticamente campañas.
+Por ejemplo.
+A todos los usuarios de ese distrito les llega una notificación con recomendaciones preventivas.
+No sería una campaña genérica, sino contextualizada.
+
+Dashboard para autoridades
+No solo médicos.
+También municipalidades.
+DIRESA.
+MINSA.
+Gobierno Regional.
+Podrían observar:
+* número de reportes 
+* comunidades con más incidencia 
+* enfermedades predominantes 
+* tendencias 
+* evolución semanal 
+Eso convierte al proyecto en una herramienta de gestión pública.
+
+Funcionamiento Offline
+Esta característica no puede faltar.
+Muchísimas comunidades amazónicas no tienen Internet constante.
+La aplicación debe funcionar normalmente.
+Cuando detecta señal:
+sincroniza.
+Este detalle, aunque técnicamente no es complejo, responde a una necesidad regional muy concreta.
+
+¿Dónde entra la innovación?
+Aquí.
+No inventamos una IA nueva.
+No inventamos mapas.
+No inventamos aplicaciones móviles.
+Lo innovador es la integración de todo esto para un contexto específico:
+* vigilancia epidemiológica comunitaria, 
+* análisis geoespacial, 
+* clasificación de riesgo, 
+* funcionamiento offline, 
+* campañas preventivas inteligentes.
+
