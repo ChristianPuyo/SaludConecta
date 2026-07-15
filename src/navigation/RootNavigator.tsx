@@ -3,7 +3,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useRole } from '../context/RoleContext';
 import { RoleSelectorScreen } from '../screens/RoleSelectorScreen';
-import { CitizenNavigator } from './CitizenNavigator';
+import { CitizenStackNavigator } from './CitizenStackNavigator';
 import { AgentNavigator } from './AgentNavigator';
 import { AuthorityNavigator } from './AuthorityNavigator';
 import { colors } from '../theme/colors';
@@ -26,7 +26,7 @@ export function RootNavigator() {
       {!role ? (
         <Stack.Screen name="RoleSelector" component={RoleSelectorScreen} />
       ) : role === 'citizen' ? (
-        <Stack.Screen name="CitizenApp" component={CitizenNavigator} />
+        <Stack.Screen name="CitizenApp" component={CitizenStackNavigator} />
       ) : role === 'agent' ? (
         <Stack.Screen name="AgentApp" component={AgentNavigator} />
       ) : (

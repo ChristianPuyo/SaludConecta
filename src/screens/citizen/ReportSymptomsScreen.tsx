@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useReports } from '../../context/ReportsContext';
 import { colors } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
-import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
+import type { CitizenStackParamList } from '../../navigation/CitizenStackNavigator';
 
-type Nav = BottomTabNavigationProp<CitizenTabParamList, 'ReportSymptoms'>;
+type Nav = NativeStackNavigationProp<CitizenStackParamList, 'ReportSymptoms'>;
 
 const SYMPTOMS = ['Fiebre', 'Diarrea', 'Tos', 'Vómitos', 'Dolor muscular', 'Dolor de cabeza'];
 
@@ -50,7 +50,7 @@ export function ReportSymptomsScreen() {
     setSelected([]);
     setDistrict('');
     setCommunity('');
-    navigation.navigate('MyReports');
+    navigation.goBack();
   };
 
   return (
