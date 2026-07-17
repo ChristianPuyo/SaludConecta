@@ -1,24 +1,28 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Alert } from 'react-native';
 import { useRole } from '../context/RoleContext';
 import { ROLE_OPTIONS } from '../types/role';
 import { colors } from '../theme/colors';
-import { Header } from '../components/Header';
+import { LandingHeader } from '../components/LandingHeader';
+import { HeroSection } from '../components/HeroSection';
+import { FeatureStrip } from '../components/FeatureStrip';
 import { RoleCard } from '../components/RoleCard';
 import { SecurityBanner } from '../components/SecurityBanner';
 
 export function RoleSelectorScreen() {
   const { selectRole } = useRole();
   const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const rolesSectionRef = useRef<View>(null);
 
-  const isMobile = width < 768;
-  const isTablet = width >= 768 && width < 1024;
+  const isMobile = width < 640;
+  const isTablet = width >= 640 && width < 1024;
 
   const handleHelpPress = () => {
     Alert.alert(
-      'Ayuda',
+      'Contacto',
       'Selecciona el rol que mejor se ajuste a tu función:\n\n• Ciudadano: Reporta síntomas y recibe información preventiva\n• Agente Comunitario: Registra datos de salud en campo\n• Autoridad/Analista: Monitorea y analiza datos epidemiológicos',
-      [{ text: 'Entendido', onPress: () => {} }]
+      [{ text: 'Entendido' }]
     );
   };
 
@@ -26,67 +30,81 @@ export function RoleSelectorScreen() {
     Alert.alert(
       'Sobre Guardian Salud AI',
       'Sistema inteligente de vigilancia epidemiológica y prevención temprana para la Amazonía Peruana.',
-      [{ text: 'Cerrar', onPress: () => {} }]
+      [{ text: 'Cerrar' }]
     );
+  };
+
+  const handleExplorePress = () => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const handleHowItWorksPress = () => {
+    scrollRef.current?.scrollTo({ y: 500, animated: true });
   };
 
   const roleConfigs = {
     citizen: {
-      color: colors.primary,
-      buttonColor: colors.primary,
-      badge: undefined,
+      color: colors.primaryLight,
+      buttonColor: colors.primaryLight,
+      badge: undefined as string | undefined,
     },
     agent: {
       color: colors.blue,
       buttonColor: colors.blue,
-      badge: 'Offline',
+      badge: 'Modo offline',
     },
     authority: {
       color: colors.purple,
       buttonColor: colors.purple,
-      badge: 'Institucional',
+      badge: 'Análisis inteligente',
     },
   };
 
   return (
     <View style={styles.wrapper}>
-      <Header onHelpPress={handleHelpPress} onAboutPress={handleAboutPress} />
+      <LandingHeader onHelpPress={handleHelpPress} onAboutPress={handleAboutPress} />
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sección de presentación */}
-        <View style={styles.introSection}>
-          <Text style={styles.mainTitle}>Guardian Salud AI</Text>
-          <View style={styles.decorativeLine} />
-          <Text style={styles.subtitle}>
-            Sistema inteligente de vigilancia epidemiológica y prevención temprana para la Amazonía Peruana
-          </Text>
-          <Text style={styles.description}>
-            Una plataforma que conecta comunidad, territorio e inteligencia artificial para actuar antes de que
-            un brote avance.
-          </Text>
+        {/* Hero Section */}
+        <HeroSection
+          onExplorePress={handleExplorePress}
+          onHowItWorksPress={handleHowItWorksPress}
+        />
+
+        {/* Feature Strip */}
+        <View style={styles.sectionSpacer}>
+          <FeatureStrip />
         </View>
 
-        {/* Pregunta de selección */}
-        <Text style={[styles.selectionQuestion, isMobile && styles.selectionQuestionMobile]}>
-          ¿Con qué rol vas a ingresar?
-        </Text>
+        {/* Role Selection */}
+        <View ref={rolesSectionRef} style={styles.rolesSection}>
+          {/* Title with decorative lines */}
+          <View style={[styles.roleTitleRow, isMobile && styles.roleTitleRowMobile]}>
+            {!isMobile && <View style={styles.decorativeLine} />}
+            <Text style={[styles.roleTitle, isMobile && styles.roleTitleMobile]}>
+              ¿Con qué rol vas a ingresar?
+            </Text>
+            {!isMobile && <View style={styles.decorativeLine} />}
+          </View>
 
-        {/* Tarjetas de roles */}
-        <View style={[styles.cardsContainer, isMobile && styles.cardsContainerMobile]}>
-          {ROLE_OPTIONS.map((option) => (
-            <RoleCard
-              key={option.id}
-              option={option}
-              onPress={() => selectRole(option.id)}
-              color={roleConfigs[option.id as keyof typeof roleConfigs].color}
-              buttonColor={roleConfigs[option.id as keyof typeof roleConfigs].buttonColor}
-              badge={roleConfigs[option.id as keyof typeof roleConfigs].badge}
-            />
-          ))}
+          {/* Role Cards */}
+          <View style={[styles.cardsContainer, isMobile && styles.cardsContainerMobile]}>
+            {ROLE_OPTIONS.map((option) => (
+              <RoleCard
+                key={option.id}
+                option={option}
+                onPress={() => selectRole(option.id)}
+                color={roleConfigs[option.id as keyof typeof roleConfigs].color}
+                buttonColor={roleConfigs[option.id as keyof typeof roleConfigs].buttonColor}
+                badge={roleConfigs[option.id as keyof typeof roleConfigs].badge}
+              />
+            ))}
+          </View>
         </View>
       </ScrollView>
 
@@ -106,59 +124,45 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 32,
+    gap: 32,
   },
-  introSection: {
+  sectionSpacer: {
+    marginTop: 8,
+  },
+  rolesSection: {
+    gap: 20,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  roleTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 50,
-    gap: 12,
+    gap: 16,
   },
-  mainTitle: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    textAlign: 'center',
+  roleTitleRowMobile: {
+    justifyContent: 'center',
   },
   decorativeLine: {
-    width: 48,
-    height: 4,
-    backgroundColor: colors.primary,
-    borderRadius: 2,
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
   },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 600,
-    marginTop: 12,
-  },
-  selectionQuestion: {
+  roleTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 24,
-    marginLeft: 0,
-  },
-  selectionQuestionMobile: {
     textAlign: 'center',
+  },
+  roleTitleMobile: {
     fontSize: 18,
   },
   cardsContainer: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 40,
   },
   cardsContainerMobile: {
     flexDirection: 'column',
     gap: 16,
-    marginBottom: 24,
   },
 });

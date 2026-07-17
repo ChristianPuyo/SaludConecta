@@ -5,83 +5,93 @@ import { colors } from '../theme/colors';
 
 export function SecurityBanner() {
   const { width } = useWindowDimensions();
-  const isMobile = width < 768;
+  const isMobile = width < 640;
 
   return (
     <View style={styles.banner}>
-      <View style={[styles.leftContent, isMobile && styles.leftContentMobile]}>
-        <View style={styles.lockIcon}>
-          <Ionicons name="lock-closed" size={20} color={colors.primaryDark} />
-        </View>
-        <View style={styles.textContent}>
-          <Text style={styles.mainText}>Tu información está segura con nosotros.</Text>
-          <Text style={styles.secondaryText}>
-            Cumplimos con altos estándares de seguridad, privacidad y protección de datos.
+      <View style={[styles.content, isMobile && styles.contentMobile]}>
+        {/* Left: Lock + text */}
+        <View style={styles.leftSection}>
+          <Ionicons name="lock-closed" size={16} color={colors.accent} />
+          <Text style={styles.mainText}>
+            Seguridad, privacidad y confianza en cada dato.
           </Text>
         </View>
-      </View>
 
-      {!isMobile && (
-        <View style={styles.rightContent}>
-          <Ionicons name="shield" size={20} color={colors.primaryDark} />
-          <Text style={styles.badgeText}>Datos protegidos</Text>
+        {/* Separator */}
+        <View style={[styles.separator, isMobile && styles.separatorMobile]} />
+
+        {/* Right: Standards + badge */}
+        <View style={styles.rightSection}>
+          <Text style={styles.secondaryText}>
+            Sistema alineado con estándares de salud pública.
+          </Text>
+          <View style={styles.badgeContainer}>
+            <Ionicons name="shield-checkmark" size={12} color={colors.accent} />
+            <Text style={styles.badgeText}>Datos protegidos</Text>
+          </View>
         </View>
-      )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    backgroundColor: colors.primaryDark,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  content: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  leftContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  leftContentMobile: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  lockIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 16,
   },
-  textContent: {
-    flex: 1,
-    gap: 4,
+  contentMobile: {
+    flexDirection: 'column',
+    gap: 8,
   },
-  mainText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  secondaryText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 16,
-  },
-  rightContent: {
+  leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  mainText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  separator: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  separatorMobile: {
+    width: 40,
+    height: 1,
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  secondaryText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(57, 213, 186, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
   badgeText: {
-    fontSize: 13,
+    fontSize: 10,
     fontWeight: '600',
-    color: colors.primaryDark,
+    color: colors.accent,
   },
 });

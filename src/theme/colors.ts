@@ -1,24 +1,47 @@
 export const colors = {
-  // Paleta principal según diseño
-  primaryDark: '#064E4A',      // Verde oscuro
-  primary: '#15977F',           // Verde principal
-  blue: '#2477CC',              // Azul
-  purple: '#8050BD',            // Morado
-  
-  // Colores complementarios
-  secondary: '#2563EB',
-  danger: '#DC2626',
-  warning: '#D97706',
+  // Paleta principal - Verde azulado oscuro
+  primaryDark: '#043F43',
+  primaryDarkAlt: '#06353A',
+
+  // Verde principal
+  primary: '#15966F',
+  primaryLight: '#16965F',
+
+  // Turquesa / acento
+  accent: '#39D5BA',
+  turquoise: '#2CBCAF',
+
+  // Azul del agente
+  blue: '#1488A8',
+  blueDark: '#1788A8',
+
+  // Morado del analista
+  purple: '#5B3AB5',
+
+  // Naranja de alerta
+  warning: '#F5A524',
+
+  // Rojo de riesgo
+  danger: '#E74C3C',
+
+  // Éxito
   success: '#16A34A',
-  
-  // Fondos y superficies
-  background: '#F8FAFB',
-  surface: '#FFFFFF',
-  
+
+  // Fondos
+  background: '#EAF5F3',
+  surface: '#F9FCFB',
+  surfaceWhite: '#FFFFFF',
+
   // Texto
-  textPrimary: '#102E33',
-  textSecondary: '#52636D',
-  
+  textPrimary: '#0C3035',
+  textSecondary: '#50666A',
+  textLight: '#FFFFFF',
+  textMuted: '#8A9EA3',
+
   // Bordes
-  border: '#DDE5E8',
+  border: '#CFE2DF',
+  borderLight: '#E0EEEC',
+
+  // Funciones de compatibilidad
+  secondary: '#2563EB',
 };
