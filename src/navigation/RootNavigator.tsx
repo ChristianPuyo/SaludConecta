@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useRole } from '../context/RoleContext';
 import { RoleSelectorScreen } from '../screens/RoleSelectorScreen';
@@ -16,13 +16,20 @@ export function RootNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <View style={styles.loadingDot} />
       </View>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade',
+        animationDuration: 300,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       {!role ? (
         <Stack.Screen name="RoleSelector" component={RoleSelectorScreen} />
       ) : role === 'citizen' ? (
@@ -37,5 +44,16 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  loadingDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
+  },
 });

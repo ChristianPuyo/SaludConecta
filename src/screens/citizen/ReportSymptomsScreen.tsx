@@ -1,32 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useReports } from '../../context/ReportsContext';
-import { colors, shadows } from '../../theme/colors';
+import { colors, borderRadius, spacing, typography } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
 import type { DiseaseType } from '../../data/mockData';
+import { AnimatedButton } from '../../components/AnimatedButton';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
-import { Ionicons } from '@expo/vector-icons';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'ReportSymptoms'>;
 
 const SYMPTOMS = [
-  { name: 'Fiebre', icon: '🤒' },
+  { name: 'Fiebre', icon: '🌡️' },
   { name: 'Diarrea', icon: '💧' },
-  { name: 'Tos', icon: '😷' },
-  { name: 'Vómitos', icon: '🤢' },
+  { name: 'Tos', icon: '🫁' },
+  { name: 'Vómitos', icon: '🤮' },
   { name: 'Dolor muscular', icon: '💪' },
   { name: 'Dolor de cabeza', icon: '🤕' },
 ];
 
 const DISEASE_OPTIONS: { key: DiseaseType; label: string; icon: string; color: string }[] = [
-  { key: 'respiratoria', label: 'Respiratoria', icon: '🫁', color: colors.accentBlue },
-  { key: 'diarrea', label: 'Diarrea', icon: '💧', color: colors.accentAmber },
-  { key: 'dengue', label: 'Dengue', icon: '🦟', color: colors.danger },
-  { key: 'malaria', label: 'Malaria', icon: '🔬', color: colors.accentPurple },
-  { key: 'leptospirosis', label: 'Leptospirosis', icon: '🐀', color: colors.accentPink },
-  { key: 'otra', label: 'Otra', icon: '❓', color: colors.textSecondary },
+  { key: 'respiratoria', label: 'Respiratoria', icon: '🫁', color: '#3B82F6' },
+  { key: 'dengue', label: 'Dengue', icon: '🦟', color: '#EF4444' },
+  { key: 'diarrea', label: 'Diarrea', icon: '💧', color: '#F59E0B' },
+  { key: 'malaria', label: 'Malaria', icon: '🔬', color: '#8B5CF6' },
+  { key: 'leptospirosis', label: 'Leptospirosis', icon: '🐀', color: '#EC4899' },
+  { key: 'otra', label: 'Otra', icon: '❓', color: '#6B7280' },
 ];
 
 function classifyRisk(symptomCount: number, hasFever: boolean): RiskLevel {
@@ -41,12 +42,30 @@ function getRiskExplanation(symptoms: string[], risk: RiskLevel, age?: number): 
   const ageNote = age && age < 5 ? ' en paciente menor de 5 años' : age && age > 60 ? ' en paciente mayor' : '';
 
   if (risk === 'alto') {
-    return `${count} síntomas reportados${ageNote} incluyendo fiebre. Riesgo ALTO. Acude al centro de salud urgente.`;
+    return `${count} síntomas reportados${ageNote} incluyendo fiebre. Clasificado como riesgo ALTO. Se recomienda acudir al centro de salud de forma urgente.`;
   }
   if (risk === 'medio') {
-    return `${count} síntomas reportados${ageNote}${hasFever ? ' con fiebre' : ''}. Riesgo MEDIO. Monitorea tus síntomas.`;
+    return `${count} síntomas reportados${ageNote}${hasFever ? ' con fiebre' : ''}. Clasificado como riesgo MEDIO. Monitorea tus síntomas y consulta si empeoran.`;
   }
   return `${count} síntoma leve reportado${ageNote}. Riesgo BAJO. Descansa y mantente hidratado.`;
+}
+
+function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, delay, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 8, delay, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View style={[{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      {children}
+    </Animated.View>
+  );
 }
 
 export function ReportSymptomsScreen() {
@@ -58,6 +77,12 @@ export function ReportSymptomsScreen() {
   const [diseaseType, setDiseaseType] = useState<DiseaseType>('dengue');
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<'M' | 'F' | ''>('');
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
 
   const toggleSymptom = (symptom: string) => {
     setSelected((prev) =>
@@ -99,234 +124,202 @@ export function ReportSymptomsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons name="document-text-outline" size={24} color={colors.primary} />
-        <View>
-          <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
-          <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
-        </View>
-      </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <Animated.View style={{ opacity: fadeAnim }}>
+        {/* Header */}
+        <AnimatedSection delay={0}>
+          <View style={styles.header}>
+            <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
+            <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
+          </View>
+        </AnimatedSection>
 
-      {/* Síntomas */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionLabel}>Síntomas</Text>
+        {/* Symptoms */}
+        <AnimatedSection delay={100}>
+          <Text style={styles.sectionLabel}>Síntomas</Text>
+        </AnimatedSection>
         <View style={styles.chipsWrap}>
-          {SYMPTOMS.map((s) => {
-            const active = selected.includes(s.name);
+          {SYMPTOMS.map((symptom, i) => {
+            const active = selected.includes(symptom.name);
             return (
-              <Pressable
-                key={s.name}
-                onPress={() => toggleSymptom(s.name)}
-                style={[styles.chip, active && styles.chipActive]}
-              >
-                <Text style={styles.chipIcon}>{s.icon}</Text>
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{s.name}</Text>
-              </Pressable>
+              <AnimatedSection key={symptom.name} delay={150 + i * 50}>
+                <Pressable
+                  onPress={() => toggleSymptom(symptom.name)}
+                  style={[styles.chip, active && styles.chipActive]}
+                >
+                  <Text style={styles.chipIcon}>{symptom.icon}</Text>
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom.name}</Text>
+                </Pressable>
+              </AnimatedSection>
             );
           })}
         </View>
-        {selected.length > 0 && (
-          <Text style={styles.selectedCount}>{selected.length} síntoma(s) seleccionado(s)</Text>
-        )}
-      </View>
 
-      {/* Tipo de enfermedad */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionLabel}>Tipo de enfermedad sospechada</Text>
+        {/* Disease Type */}
+        <AnimatedSection delay={400}>
+          <Text style={styles.sectionLabel}>Tipo de enfermedad sospechada</Text>
+        </AnimatedSection>
         <View style={styles.diseaseGrid}>
-          {DISEASE_OPTIONS.map((d) => {
+          {DISEASE_OPTIONS.map((d, i) => {
             const active = diseaseType === d.key;
             return (
-              <Pressable
-                key={d.key}
-                onPress={() => setDiseaseType(d.key)}
-                style={[styles.diseaseCard, active && { borderColor: d.color, borderWidth: 2 }]}
-              >
-                <Text style={styles.diseaseIcon}>{d.icon}</Text>
-                <Text style={[styles.diseaseLabel, active && { color: d.color }]}>{d.label}</Text>
-              </Pressable>
+              <AnimatedSection key={d.key} delay={450 + i * 50}>
+                <Pressable
+                  onPress={() => setDiseaseType(d.key)}
+                  style={[styles.diseaseCard, active && { borderColor: d.color, backgroundColor: d.color + '10' }]}
+                >
+                  <Text style={styles.diseaseIcon}>{d.icon}</Text>
+                  <Text style={[styles.diseaseLabel, active && { color: d.color }]}>{d.label}</Text>
+                </Pressable>
+              </AnimatedSection>
             );
           })}
         </View>
-      </View>
 
-      {/* Datos demográficos */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionLabel}>Datos demográficos (opcional)</Text>
-        <View style={styles.row}>
-          <View style={[styles.fieldGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Edad</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ej: 34"
-              placeholderTextColor={colors.textTertiary}
-              value={age}
-              onChangeText={setAge}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={{ width: 12 }} />
-          <View style={[styles.fieldGroup, { flex: 1 }]}>
-            <Text style={styles.label}>Sexo</Text>
-            <View style={styles.sexRow}>
-              <Pressable
-                onPress={() => setSex(sex === 'M' ? '' : 'M')}
-                style={[styles.sexBtn, sex === 'M' && styles.sexBtnActive]}
-              >
-                <Ionicons name="male-outline" size={16} color={sex === 'M' ? '#fff' : colors.textSecondary} />
-                <Text style={[styles.sexBtnText, sex === 'M' && styles.sexBtnTextActive]}>M</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setSex(sex === 'F' ? '' : 'F')}
-                style={[styles.sexBtn, sex === 'F' && styles.sexBtnActiveF]}
-              >
-                <Ionicons name="female-outline" size={16} color={sex === 'F' ? '#fff' : colors.textSecondary} />
-                <Text style={[styles.sexBtnText, sex === 'F' && styles.sexBtnTextActive]}>F</Text>
-              </Pressable>
+        {/* Demographics */}
+        <AnimatedSection delay={700}>
+          <Text style={styles.sectionLabel}>Datos demográficos</Text>
+        </AnimatedSection>
+        <AnimatedSection delay={750}>
+          <View style={styles.row}>
+            <View style={[styles.fieldGroup, { flex: 1 }]}>
+              <Text style={styles.label}>Edad</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: 34"
+                placeholderTextColor={colors.textMuted}
+                value={age}
+                onChangeText={setAge}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={{ width: spacing.md }} />
+            <View style={[styles.fieldGroup, { flex: 1 }]}>
+              <Text style={styles.label}>Sexo</Text>
+              <View style={styles.sexRow}>
+                <Pressable onPress={() => setSex(sex === 'M' ? '' : 'M')} style={[styles.sexBtn, sex === 'M' && styles.sexBtnActive]}>
+                  <Ionicons name="male" size={16} color={sex === 'M' ? '#fff' : colors.textSecondary} />
+                  <Text style={[styles.sexBtnText, sex === 'M' && styles.sexBtnTextActive]}>M</Text>
+                </Pressable>
+                <Pressable onPress={() => setSex(sex === 'F' ? '' : 'F')} style={[styles.sexBtn, sex === 'F' && styles.sexBtnActive]}>
+                  <Ionicons name="female" size={16} color={sex === 'F' ? '#fff' : colors.textSecondary} />
+                  <Text style={[styles.sexBtnText, sex === 'F' && styles.sexBtnTextActive]}>F</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      </View>
+        </AnimatedSection>
 
-      {/* Ubicación */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionLabel}>Ubicación</Text>
-        <View style={styles.locationRow}>
-          <View style={[styles.locationInput, { flex: 1 }]}>
-            <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-            <TextInput
-              style={styles.locationInputText}
-              placeholder="Distrito"
-              placeholderTextColor={colors.textTertiary}
-              value={district}
-              onChangeText={setDistrict}
-            />
+        {/* Location */}
+        <AnimatedSection delay={850}>
+          <Text style={styles.sectionLabel}>Ubicación</Text>
+        </AnimatedSection>
+        <AnimatedSection delay={900}>
+          <View style={styles.inputRow}>
+            <View style={[styles.inputIconWrap, { flex: 1 }]}>
+              <Ionicons name="location" size={18} color={colors.textMuted} />
+              <TextInput style={styles.inputIcon} placeholder="Distrito" placeholderTextColor={colors.textMuted} value={district} onChangeText={setDistrict} />
+            </View>
+            <View style={{ width: spacing.md }} />
+            <View style={[styles.inputIconWrap, { flex: 1 }]}>
+              <Ionicons name="home" size={18} color={colors.textMuted} />
+              <TextInput style={styles.inputIcon} placeholder="Comunidad" placeholderTextColor={colors.textMuted} value={community} onChangeText={setCommunity} />
+            </View>
           </View>
-          <View style={[styles.locationInput, { flex: 1 }]}>
-            <Ionicons name="map-outline" size={16} color={colors.textSecondary} />
-            <TextInput
-              style={styles.locationInputText}
-              placeholder="Comunidad"
-              placeholderTextColor={colors.textTertiary}
-              value={community}
-              onChangeText={setCommunity}
-            />
-          </View>
-        </View>
-      </View>
+        </AnimatedSection>
 
-      {/* Botón enviar */}
-      <Pressable
-        style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed, selected.length === 0 && styles.primaryButtonDisabled]}
-        onPress={handleSubmit}
-        disabled={selected.length === 0}
-      >
-        <Ionicons name="send-outline" size={20} color="#fff" />
-        <Text style={styles.primaryButtonText}>Enviar reporte</Text>
-      </Pressable>
+        {/* Submit */}
+        <AnimatedSection delay={1000}>
+          <AnimatedButton
+            title="Enviar reporte"
+            onPress={handleSubmit}
+            variant="primary"
+            size="lg"
+            icon="📤"
+            style={{ marginTop: spacing.xl }}
+          />
+        </AnimatedSection>
+      </Animated.View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, gap: 14, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: 13, color: colors.textSecondary },
-  sectionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 18,
-    gap: 10,
-    ...shadows.medium,
-  },
-  sectionLabel: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  content: { padding: spacing.xl, paddingBottom: 40 },
+  header: { marginBottom: spacing.xl },
+  title: { fontSize: typography.xxl, fontWeight: '900', color: colors.textPrimary },
+  subtitle: { fontSize: typography.md, color: colors.textSecondary, marginTop: spacing.xs },
+  sectionLabel: { fontSize: typography.base, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md, marginTop: spacing.lg },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1.5,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipIcon: { fontSize: 14 },
-  chipText: { color: colors.textPrimary, fontWeight: '600', fontSize: 13 },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary, ...colors.shadowPrimary },
+  chipIcon: { fontSize: 16 },
+  chipText: { color: colors.textPrimary, fontWeight: '600', fontSize: typography.sm },
   chipTextActive: { color: '#fff' },
-  selectedCount: { fontSize: 12, color: colors.primary, fontWeight: '600' },
-  diseaseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  diseaseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   diseaseCard: {
     width: '30%',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
     borderColor: colors.border,
     backgroundColor: colors.surface,
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
-  diseaseIcon: { fontSize: 24 },
-  diseaseLabel: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
+  diseaseIcon: { fontSize: 28 },
+  diseaseLabel: { fontSize: typography.xs, fontWeight: '700', color: colors.textSecondary },
   row: { flexDirection: 'row' },
-  fieldGroup: { marginBottom: 8 },
-  label: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 6 },
+  fieldGroup: { marginBottom: spacing.md },
+  label: { fontSize: typography.sm, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.xs },
   input: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: typography.base,
   },
-  sexRow: { flexDirection: 'row', gap: 8 },
+  inputRow: { flexDirection: 'row' },
+  inputIconWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
+  },
+  inputIcon: { flex: 1, color: colors.textPrimary, fontSize: typography.base, padding: 0 },
+  sexRow: { flexDirection: 'row', gap: spacing.sm },
   sexBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
     borderColor: colors.border,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
-  sexBtnActive: { backgroundColor: colors.accentBlue, borderColor: colors.accentBlue },
-  sexBtnActiveF: { backgroundColor: colors.accentPink, borderColor: colors.accentPink },
-  sexBtnText: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
+  sexBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  sexBtnText: { fontSize: typography.sm, fontWeight: '600', color: colors.textSecondary },
   sexBtnTextActive: { color: '#fff' },
-  locationRow: { flexDirection: 'row', gap: 10 },
-  locationInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    backgroundColor: colors.background,
-  },
-  locationInputText: { flex: 1, paddingVertical: 12, color: colors.textPrimary, fontSize: 14 },
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
-    ...shadows.primary,
-  },
-  primaryButtonPressed: { transform: [{ scale: 0.98 }] },
-  primaryButtonDisabled: { opacity: 0.5 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

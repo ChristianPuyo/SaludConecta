@@ -1,57 +1,63 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { MOCK_CAMPAIGNS, type SmartCampaign, DISEASE_LABELS, DISEASE_COLORS, type DiseaseType } from '../../data/mockData';
-import { RiskBadge } from '../../components/RiskBadge';
-import { colors, shadows } from '../../theme/colors';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { MOCK_CAMPAIGNS, type SmartCampaign, DISEASE_LABELS, DISEASE_COLORS } from '../../data/mockData';
+import { RiskBadge } from '../../components/RiskBadge';
+import { colors, borderRadius, spacing, typography } from '../../theme/colors';
 
 const RISK_FOR_DISEASE: Record<string, 'bajo' | 'medio' | 'alto'> = {
-  dengue: 'alto',
-  respiratoria: 'medio',
-  diarrea: 'medio',
-  malaria: 'alto',
-  leptospirosis: 'alto',
-  otra: 'bajo',
+  dengue: 'alto', respiratoria: 'medio', diarrea: 'medio', malaria: 'alto', leptospirosis: 'alto', otra: 'bajo',
 };
 
 export function SmartCampaignsScreen() {
-  const renderItem = ({ item }: { item: SmartCampaign }) => (
-    <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <View style={[styles.cardIconWrap, { backgroundColor: DISEASE_COLORS[item.diseaseType] + '15' }]}>
-          <Ionicons name="megaphone" size={22} color={DISEASE_COLORS[item.diseaseType]} />
+  const renderItem = ({ item, index }: { item: SmartCampaign; index: number }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(25)).current;
+    const scaleAnim = useRef(new Animated.Value(0.95)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 500, delay: index * 100, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, friction: 8, delay: index * 100, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 8, delay: index * 100, useNativeDriver: true }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View style={[{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }]}>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderLeft}>
+              <View style={[styles.iconWrap, { backgroundColor: DISEASE_COLORS[item.diseaseType] + '15' }]}>
+                <Ionicons name="megaphone" size={20} color={DISEASE_COLORS[item.diseaseType]} />
+              </View>
+              <View style={styles.cardHeaderText}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <View style={styles.cardMeta}>
+                  <Ionicons name="location" size={12} color={colors.textMuted} />
+                  <Text style={styles.cardDistrict}>{item.district}</Text>
+                </View>
+              </View>
+            </View>
+            <RiskBadge level={RISK_FOR_DISEASE[item.diseaseType] || 'bajo'} size="sm" />
+          </View>
+          <Text style={styles.cardDetail}>{item.description}</Text>
+          <View style={styles.cardFooter}>
+            <View style={styles.statBadge}>
+              <Ionicons name="people" size={14} color={colors.textMuted} />
+              <Text style={styles.statText}>{item.notificationsSent} notificados</Text>
+            </View>
+            <View style={[styles.statusBadge, item.active ? styles.activeBadge : styles.inactiveBadge]}>
+              <View style={[styles.statusDot, { backgroundColor: item.active ? colors.success : colors.textMuted }]} />
+              <Text style={[styles.statusText, item.active ? styles.activeText : styles.inactiveText]}>
+                {item.active ? 'Activa' : 'Inactiva'}
+              </Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.cardTopRight}>
-          <RiskBadge level={RISK_FOR_DISEASE[item.diseaseType] || 'bajo'} />
-          <View style={[styles.statusDot, { backgroundColor: item.active ? colors.success : colors.textTertiary }]} />
-        </View>
-      </View>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <View style={styles.cardMeta}>
-        <View style={styles.metaItem}>
-          <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
-          <Text style={styles.cardDistrict}>{item.district}</Text>
-        </View>
-        <View style={[styles.diseaseTag, { backgroundColor: DISEASE_COLORS[item.diseaseType] + '20' }]}>
-          <Text style={[styles.diseaseTagText, { color: DISEASE_COLORS[item.diseaseType] }]}>
-            {DISEASE_LABELS[item.diseaseType]}
-          </Text>
-        </View>
-      </View>
-      <Text style={styles.cardDetail}>{item.description}</Text>
-      <View style={styles.cardFooter}>
-        <View style={styles.footerItem}>
-          <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-          <Text style={styles.footerText}>{item.notificationsSent} notificados</Text>
-        </View>
-        <View style={[styles.footerItem, { backgroundColor: item.active ? colors.successLight : colors.backgroundAlt, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }]}>
-          <Text style={[styles.footerText, { color: item.active ? colors.success : colors.textSecondary, fontWeight: '700' }]}>
-            {item.active ? '● Activa' : '○ Inactiva'}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+      </Animated.View>
+    );
+  };
 
   return (
     <FlatList
@@ -60,21 +66,17 @@ export function SmartCampaignsScreen() {
       data={MOCK_CAMPAIGNS}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      showsVerticalScrollIndicator={false}
       ListHeaderComponent={
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Ionicons name="megaphone" size={24} color={colors.primary} />
-            <View>
-              <Text style={styles.title}>Campañas Inteligentes</Text>
-              <Text style={styles.subtitle}>Generadas automáticamente por IA</Text>
-            </View>
-          </View>
+          <Text style={styles.title}>Campañas Inteligentes</Text>
+          <Text style={styles.subtitle}>Recomendaciones preventivas generadas por IA</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoIconWrap}>
-              <Ionicons name="bulb" size={18} color={colors.warning} />
+              <Ionicons name="bulb" size={20} color={colors.warning} />
             </View>
             <Text style={styles.infoText}>
-              La IA detecta incrementos de enfermedades y genera campañas preventivas contextuales para tu comunidad.
+              La IA detecta incrementos de enfermedades y genera campañas contextuales para tu comunidad.
             </Text>
           </View>
         </View>
@@ -85,56 +87,45 @@ export function SmartCampaignsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 40 },
-  header: { marginBottom: 16, gap: 12 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: 13, color: colors.textSecondary },
+  content: { padding: spacing.xl, paddingBottom: 40 },
+  header: { marginBottom: spacing.xl, gap: spacing.sm },
+  title: { fontSize: typography.xxxl, fontWeight: '900', color: colors.textPrimary },
+  subtitle: { fontSize: typography.md, color: colors.textSecondary },
   infoCard: {
-    flexDirection: 'row',
-    gap: 10,
-    backgroundColor: '#FFFBEB',
-    borderRadius: 16,
-    padding: 14,
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#FEF3C7',
+    flexDirection: 'row', gap: spacing.md, backgroundColor: '#FFFBEB',
+    borderRadius: borderRadius.xl, padding: spacing.lg, marginTop: spacing.md, alignItems: 'flex-start',
+    borderWidth: 1, borderColor: '#FDE68A',
   },
   infoIconWrap: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: 10,
     backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  infoText: { fontSize: 12, color: colors.textSecondary, flex: 1, lineHeight: 17 },
+  infoText: { fontSize: typography.sm, color: colors.textSecondary, flex: 1, lineHeight: 20 },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
-    gap: 10,
-    ...shadows.medium,
+    backgroundColor: colors.surface, borderRadius: borderRadius.xl, padding: spacing.lg,
+    borderWidth: 1, borderColor: colors.border, marginBottom: spacing.md, gap: spacing.md,
+    ...colors.shadowMd,
   },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTopRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
+  cardHeaderLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, flex: 1 },
+  iconWrap: { width: 44, height: 44, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  cardHeaderText: { flex: 1, gap: spacing.xs },
+  cardTitle: { fontSize: typography.base, fontWeight: '700', color: colors.textPrimary, lineHeight: 20 },
+  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  cardDistrict: { fontSize: typography.sm, color: colors.textMuted, fontWeight: '600' },
+  cardDetail: { fontSize: typography.sm, color: colors.textSecondary, lineHeight: 20 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.borderLight },
+  statBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  statText: { fontSize: typography.sm, color: colors.textMuted, fontWeight: '600' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
-  cardMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardDistrict: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
-  diseaseTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  diseaseTagText: { fontSize: 10, fontWeight: '700' },
-  cardDetail: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  footerItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  footerText: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+  statusText: { fontSize: typography.sm, fontWeight: '700' },
+  activeText: { color: colors.success },
+  inactiveText: { color: colors.textMuted },
+  activeBadge: { backgroundColor: '#DCFCE7' },
+  inactiveBadge: { backgroundColor: colors.surfaceMuted },
 });
