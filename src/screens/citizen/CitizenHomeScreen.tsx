@@ -59,7 +59,7 @@ export function CitizenHomeScreen() {
           imageStyle={styles.headerImage}
         />
         <LinearGradient
-          colors={['rgba(15, 118, 110, 0.95)', 'rgba(15, 118, 110, 0.4)', 'rgba(15, 118, 110, 0.95)']}
+          colors={['rgba(2, 132, 199, 0.95)', 'rgba(56, 189, 248, 0.4)', 'rgba(2, 132, 199, 0.95)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.headerGradient}
