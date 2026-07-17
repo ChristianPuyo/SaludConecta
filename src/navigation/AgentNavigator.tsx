@@ -1,11 +1,13 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { AgentHomeScreen } from '../screens/agent/AgentHomeScreen';
 import { RegisterVisitScreen } from '../screens/agent/RegisterVisitScreen';
 import { SyncScreen } from '../screens/agent/SyncScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
-import { colors } from '../theme/colors';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 
 export type AgentTabParamList = {
   Home: undefined;
@@ -16,10 +18,17 @@ export type AgentTabParamList = {
 const Tab = createBottomTabNavigator<AgentTabParamList>();
 
 export function AgentNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        headerRight: () => <SwitchRoleButton />,
+        headerRight: () => (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <ThemeToggle />
+            <SwitchRoleButton />
+          </View>
+        ),
         tabBarActiveTintColor: colors.primary,
       }}
     >

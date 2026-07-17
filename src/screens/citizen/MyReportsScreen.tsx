@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useReports } from '../../context/ReportsContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
@@ -8,15 +9,17 @@ import type { SymptomReport } from '../../data/mockData';
 export function MyReportsScreen() {
   const { reports } = useReports();
 
-  const renderItem = ({ item }: { item: SymptomReport }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardDate}>{item.date}</Text>
-        <RiskBadge level={item.risk} />
+  const renderItem = ({ item, index }: { item: SymptomReport; index: number }) => (
+    <Animated.View entering={FadeInDown.duration(400).delay(index * 100).springify()}>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardDate}>{item.date}</Text>
+          <RiskBadge level={item.risk} />
+        </View>
+        <Text style={styles.cardDistrict}>{item.district}</Text>
+        <Text style={styles.cardSymptoms}>{item.symptoms.join(', ')}</Text>
       </View>
-      <Text style={styles.cardDistrict}>{item.district}</Text>
-      <Text style={styles.cardSymptoms}>{item.symptoms.join(', ')}</Text>
-    </View>
+    </Animated.View>
   );
 
   return (
@@ -26,8 +29,16 @@ export function MyReportsScreen() {
       data={reports}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
-      ListHeaderComponent={<Text style={styles.title}>Mis reportes</Text>}
-      ListEmptyComponent={<Text style={styles.empty}>Aún no tienes reportes.</Text>}
+      ListHeaderComponent={
+        <Animated.View entering={FadeIn.duration(500)}>
+          <Text style={styles.title}>Mis reportes</Text>
+        </Animated.View>
+      }
+      ListEmptyComponent={
+        <Animated.View entering={FadeIn.duration(500)}>
+          <Text style={styles.empty}>Aún no tienes reportes.</Text>
+        </Animated.View>
+      }
     />
   );
 }

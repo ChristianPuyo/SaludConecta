@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useRole } from '../context/RoleContext';
 import { ROLE_OPTIONS } from '../types/role';
 import { colors } from '../theme/colors';
@@ -10,23 +11,32 @@ export function RoleSelectorScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.appName}>Guardian Salud AI</Text>
-      <Text style={styles.tagline}>SaludConecta · Vigilancia epidemiológica para la Amazonía</Text>
+      <Animated.View entering={FadeIn.duration(600)}>
+        <Text style={styles.appName}>Guardian Salud AI</Text>
+        <Text style={styles.tagline}>SaludConecta · Vigilancia epidemiológica para la Amazonía</Text>
+      </Animated.View>
 
-      <Text style={styles.prompt}>¿Con qué rol vas a ingresar?</Text>
+      <Animated.View entering={FadeIn.duration(600).delay(200)}>
+        <Text style={styles.prompt}>¿Con qué rol vas a ingresar?</Text>
+      </Animated.View>
 
       <View style={styles.optionsList}>
-        {ROLE_OPTIONS.map((option) => (
-          <Pressable key={option.id} style={styles.card} onPress={() => selectRole(option.id)}>
-            <View style={styles.iconWrap}>
-              <Ionicons name={option.icon as any} size={26} color={colors.primary} />
-            </View>
-            <View style={styles.cardTextWrap}>
-              <Text style={styles.cardTitle}>{option.title}</Text>
-              <Text style={styles.cardDescription}>{option.description}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </Pressable>
+        {ROLE_OPTIONS.map((option, index) => (
+          <Animated.View
+            key={option.id}
+            entering={FadeInDown.duration(400).delay(300 + index * 100).springify()}
+          >
+            <Pressable style={styles.card} onPress={() => selectRole(option.id)}>
+              <View style={styles.iconWrap}>
+                <Ionicons name={option.icon as any} size={26} color={colors.primary} />
+              </View>
+              <View style={styles.cardTextWrap}>
+                <Text style={styles.cardTitle}>{option.title}</Text>
+                <Text style={styles.cardDescription}>{option.description}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </Pressable>
+          </Animated.View>
         ))}
       </View>
     </ScrollView>

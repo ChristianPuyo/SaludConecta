@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MOCK_DISTRICT_RISK } from '../../data/mockData';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
@@ -7,12 +8,14 @@ import { colors } from '../../theme/colors';
 export function RiskMapScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Mapa de riesgo</Text>
-      <Text style={styles.subtitle}>
-        Vista previa por distrito. La integración con mapa geoespacial interactivo está en desarrollo.
-      </Text>
+      <Animated.View entering={FadeIn.duration(500)}>
+        <Text style={styles.title}>Mapa de riesgo</Text>
+        <Text style={styles.subtitle}>
+          Vista previa por distrito. La integración con mapa geoespacial interactivo está en desarrollo.
+        </Text>
+      </Animated.View>
 
-      <View style={styles.legendRow}>
+      <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.legendRow}>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: colors.danger }]} />
           <Text style={styles.legendText}>Alto</Text>
@@ -25,16 +28,20 @@ export function RiskMapScreen() {
           <View style={[styles.dot, { backgroundColor: colors.success }]} />
           <Text style={styles.legendText}>Bajo</Text>
         </View>
-      </View>
+      </Animated.View>
 
-      {MOCK_DISTRICT_RISK.map((district) => (
-        <View key={district.district} style={styles.card}>
+      {MOCK_DISTRICT_RISK.map((district, index) => (
+        <Animated.View
+          key={district.district}
+          entering={FadeInDown.duration(400).delay(300 + index * 100).springify()}
+          style={styles.card}
+        >
           <View>
             <Text style={styles.cardTitle}>{district.district}</Text>
             <Text style={styles.cardSubtitle}>{district.cases} casos activos</Text>
           </View>
           <RiskBadge level={district.risk} />
-        </View>
+        </Animated.View>
       ))}
     </ScrollView>
   );

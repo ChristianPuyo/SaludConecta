@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useVisits } from '../../context/VisitsContext';
+import { AnimatedButton } from '../../components/AnimatedButton';
 import { colors } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
@@ -38,7 +40,9 @@ export function RegisterVisitScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Registrar visita</Text>
+      <Animated.View entering={FadeIn.duration(500)}>
+        <Text style={styles.title}>Registrar visita</Text>
+      </Animated.View>
 
       {[
         { label: 'Nombre del paciente', value: patientName, onChange: setPatientName },
@@ -48,8 +52,12 @@ export function RegisterVisitScreen() {
         { label: 'Temperatura', value: temperature, onChange: setTemperature },
         { label: 'Peso (kg)', value: weight, onChange: setWeight },
         { label: 'Talla (cm)', value: height, onChange: setHeight },
-      ].map((field) => (
-        <View key={field.label} style={styles.fieldGroup}>
+      ].map((field, index) => (
+        <Animated.View
+          key={field.label}
+          entering={FadeInDown.duration(300).delay(100 + index * 60)}
+          style={styles.fieldGroup}
+        >
           <Text style={styles.label}>{field.label}</Text>
           <TextInput
             style={styles.input}
@@ -57,12 +65,12 @@ export function RegisterVisitScreen() {
             onChangeText={field.onChange}
             placeholderTextColor={colors.textSecondary}
           />
-        </View>
+        </Animated.View>
       ))}
 
-      <Pressable style={styles.primaryButton} onPress={handleSave}>
-        <Text style={styles.primaryButtonText}>Guardar visita</Text>
-      </Pressable>
+      <Animated.View entering={FadeInDown.duration(400).delay(600)}>
+        <AnimatedButton title="Guardar visita" onPress={handleSave} />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -82,6 +90,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     color: colors.textPrimary,
   },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

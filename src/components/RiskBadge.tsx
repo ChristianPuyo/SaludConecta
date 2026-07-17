@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { colors } from '../theme/colors';
 
 export type RiskLevel = 'bajo' | 'medio' | 'alto';
@@ -13,9 +14,9 @@ const RISK_STYLES: Record<RiskLevel, { bg: string; text: string; label: string }
 export function RiskBadge({ level }: { level: RiskLevel }) {
   const style = RISK_STYLES[level];
   return (
-    <View style={[styles.badge, { backgroundColor: style.bg }]}>
+    <Animated.View entering={FadeIn.duration(300)} style={[styles.badge, { backgroundColor: style.bg }]}>
       <Text style={[styles.text, { color: style.text }]}>{style.label}</Text>
-    </View>
+    </Animated.View>
   );
 }
 

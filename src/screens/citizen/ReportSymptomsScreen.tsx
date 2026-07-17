@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import Animated, { FadeInDown, FadeIn, Layout } from 'react-native-reanimated';
 import { useReports } from '../../context/ReportsContext';
+import { AnimatedButton } from '../../components/AnimatedButton';
 import { colors } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
@@ -55,42 +57,54 @@ export function ReportSymptomsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
-      <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
+      <Animated.View entering={FadeIn.duration(500)}>
+        <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
+        <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
+      </Animated.View>
 
       <View style={styles.chipsWrap}>
-        {SYMPTOMS.map((symptom) => {
+        {SYMPTOMS.map((symptom, index) => {
           const active = selected.includes(symptom);
           return (
-            <Pressable
+            <Animated.View
               key={symptom}
-              onPress={() => toggleSymptom(symptom)}
-              style={[styles.chip, active && styles.chipActive]}
+              entering={FadeInDown.duration(300).delay(100 + index * 50)}
+              layout={Layout.springify()}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
-            </Pressable>
+              <Pressable
+                onPress={() => toggleSymptom(symptom)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
+              </Pressable>
+            </Animated.View>
           );
         })}
       </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Distrito"
-        placeholderTextColor={colors.textSecondary}
-        value={district}
-        onChangeText={setDistrict}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Comunidad"
-        placeholderTextColor={colors.textSecondary}
-        value={community}
-        onChangeText={setCommunity}
-      />
+      <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+        <TextInput
+          style={styles.input}
+          placeholder="Distrito"
+          placeholderTextColor={colors.textSecondary}
+          value={district}
+          onChangeText={setDistrict}
+        />
+      </Animated.View>
 
-      <Pressable style={styles.primaryButton} onPress={handleSubmit}>
-        <Text style={styles.primaryButtonText}>Enviar reporte</Text>
-      </Pressable>
+      <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+        <TextInput
+          style={styles.input}
+          placeholder="Comunidad"
+          placeholderTextColor={colors.textSecondary}
+          value={community}
+          onChangeText={setCommunity}
+        />
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.duration(400).delay(600)}>
+        <AnimatedButton title="Enviar reporte" onPress={handleSubmit} />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -121,6 +135,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     color: colors.textPrimary,
   },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

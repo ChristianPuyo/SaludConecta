@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useVisits } from '../../context/VisitsContext';
+import { AnimatedButton } from '../../components/AnimatedButton';
 import { colors } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
@@ -15,10 +17,12 @@ export function AgentHomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Panel del Agente</Text>
-      <Text style={styles.subtitle}>Registra la salud de tu comunidad, con o sin Internet</Text>
+      <Animated.View entering={FadeIn.duration(500)}>
+        <Text style={styles.title}>Panel del Agente</Text>
+        <Text style={styles.subtitle}>Registra la salud de tu comunidad, con o sin Internet</Text>
+      </Animated.View>
 
-      <View style={styles.statsRow}>
+      <Animated.View entering={FadeInDown.duration(400).delay(200).springify()} style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{visits.length}</Text>
           <Text style={styles.statLabel}>Visitas registradas</Text>
@@ -27,15 +31,18 @@ export function AgentHomeScreen() {
           <Text style={[styles.statNumber, pending > 0 && { color: colors.warning }]}>{pending}</Text>
           <Text style={styles.statLabel}>Pendientes de sincronizar</Text>
         </View>
-      </View>
+      </Animated.View>
 
-      <View style={styles.offlineBanner}>
+      <Animated.View entering={FadeInDown.duration(400).delay(350).springify()} style={styles.offlineBanner}>
         <Text style={styles.offlineText}>📡 Modo offline activo: los datos se guardan en tu dispositivo</Text>
-      </View>
+      </Animated.View>
 
-      <Pressable style={styles.primaryButton} onPress={() => navigation.navigate('RegisterVisit')}>
-        <Text style={styles.primaryButtonText}>Registrar nueva visita</Text>
-      </Pressable>
+      <Animated.View entering={FadeInDown.duration(400).delay(500).springify()}>
+        <AnimatedButton
+          title="Registrar nueva visita"
+          onPress={() => navigation.navigate('RegisterVisit')}
+        />
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -51,6 +58,4 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginTop: 4 },
   offlineBanner: { backgroundColor: '#EFF6FF', borderRadius: 12, padding: 12 },
   offlineText: { color: colors.secondary, fontSize: 13, fontWeight: '600' },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

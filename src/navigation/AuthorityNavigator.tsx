@@ -1,11 +1,13 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthorityDashboardScreen } from '../screens/authority/AuthorityDashboardScreen';
-import { RiskMapScreen } from '../screens/authority/RiskMapScreen';
+import { InteractiveMapScreen } from '../screens/authority/InteractiveMapScreen';
 import { AlertsScreen } from '../screens/authority/AlertsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
-import { colors } from '../theme/colors';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
 
 export type AuthorityTabParamList = {
   Dashboard: undefined;
@@ -16,10 +18,17 @@ export type AuthorityTabParamList = {
 const Tab = createBottomTabNavigator<AuthorityTabParamList>();
 
 export function AuthorityNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        headerRight: () => <SwitchRoleButton />,
+        headerRight: () => (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <ThemeToggle />
+            <SwitchRoleButton />
+          </View>
+        ),
         tabBarActiveTintColor: colors.primary,
       }}
     >
@@ -33,7 +42,7 @@ export function AuthorityNavigator() {
       />
       <Tab.Screen
         name="RiskMap"
-        component={RiskMapScreen}
+        component={InteractiveMapScreen}
         options={{
           title: 'Mapa de Riesgo',
           tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" color={color} size={size} />,
