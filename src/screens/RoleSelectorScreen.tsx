@@ -2,13 +2,38 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRole } from '../context/RoleContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ROLE_OPTIONS } from '../types/role';
 import { colors } from '../theme/colors';
+import type { Language } from '../i18n';
+
+const LANG_OPTIONS: { id: Language; label: string }[] = [
+  { id: 'es', label: 'ESP' },
+  { id: 'shp', label: 'SHP' },
+  { id: 'ash', label: 'ASH' },
+];
 
 export function RoleSelectorScreen() {
   const { selectRole } = useRole();
+  const { language, setLanguage, t } = useLanguage();
   const { width } = useWindowDimensions();
   const isDesktop = width > 768;
+
+  const langButtons = (
+    <View style={styles.langRow}>
+      {LANG_OPTIONS.map((lang) => (
+        <Pressable
+          key={lang.id}
+          style={[styles.langBtn, language === lang.id && styles.langBtnActive]}
+          onPress={() => setLanguage(lang.id)}
+        >
+          <Text style={[styles.langBtnText, language === lang.id && styles.langBtnTextActive]}>
+            {lang.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
 
   if (isDesktop) {
     return (
@@ -19,12 +44,13 @@ export function RoleSelectorScreen() {
               <Ionicons name="medical" size={32} color="#FFFFFF" />
             </View>
             <Text style={styles.logoText}>SALUD AI</Text>
+            {langButtons}
           </View>
           
           <View style={styles.welcomeContent}>
-            <Text style={styles.welcomeTitle}>¡Hola,{'\n'}Bienvenido!</Text>
+            <Text style={styles.welcomeTitle}>{t('welcome')}</Text>
             <Text style={styles.welcomeDescription}>
-              Guardian Salud AI - Vigilancia epidemiológica para la Amazonía
+              {t('welcomeDescription')}
             </Text>
           </View>
 
@@ -34,7 +60,7 @@ export function RoleSelectorScreen() {
 
         <View style={styles.rightPanel}>
           <ScrollView contentContainerStyle={styles.rightContent}>
-            <Text style={styles.prompt}>¿Con qué rol vas a ingresar?</Text>
+            <Text style={styles.prompt}>{t('selectRole')}</Text>
 
             <View style={styles.optionsList}>
               {ROLE_OPTIONS.map((option) => (
@@ -43,8 +69,8 @@ export function RoleSelectorScreen() {
                     <Ionicons name={option.icon as any} size={26} color={colors.primary} />
                   </View>
                   <View style={styles.cardTextWrap}>
-                    <Text style={styles.cardTitle}>{option.title}</Text>
-                    <Text style={styles.cardDescription}>{option.description}</Text>
+                    <Text style={styles.cardTitle}>{t(`role${option.id.charAt(0).toUpperCase() + option.id.slice(1)}` as any)}</Text>
+                    <Text style={styles.cardDescription}>{t(`role${option.id.charAt(0).toUpperCase() + option.id.slice(1)}Desc` as any)}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                 </Pressable>
@@ -53,10 +79,10 @@ export function RoleSelectorScreen() {
 
             <Pressable style={styles.reportButton}>
               <Ionicons name="flag-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.reportButtonText}>Reportar Problema</Text>
+              <Text style={styles.reportButtonText}>{t('reportProblem')}</Text>
             </Pressable>
 
-            <Text style={styles.termsText}>Términos y condiciones</Text>
+            <Text style={styles.termsText}>{t('terms')}</Text>
           </ScrollView>
         </View>
       </View>
@@ -71,18 +97,19 @@ export function RoleSelectorScreen() {
             <Ionicons name="medical" size={24} color="#FFFFFF" />
           </View>
           <Text style={styles.mobileLogoText}>SALUD AI</Text>
+          {langButtons}
         </View>
         
-        <Text style={styles.mobileWelcomeTitle}>¡Hola,{'\n'}Bienvenido!</Text>
+        <Text style={styles.mobileWelcomeTitle}>{t('welcome')}</Text>
         <Text style={styles.mobileWelcomeDescription}>
-          Guardian Salud AI - Vigilancia epidemiológica para la Amazonía
+          {t('welcomeDescription')}
         </Text>
 
         <View style={styles.mobileDecorativeCircle} />
       </View>
 
       <ScrollView style={styles.mobileScrollView} contentContainerStyle={styles.mobileContent}>
-        <Text style={styles.prompt}>¿Con qué rol vas a ingresar?</Text>
+        <Text style={styles.prompt}>{t('selectRole')}</Text>
 
         <View style={styles.optionsList}>
           {ROLE_OPTIONS.map((option) => (
@@ -91,8 +118,8 @@ export function RoleSelectorScreen() {
                 <Ionicons name={option.icon as any} size={26} color={colors.primary} />
               </View>
               <View style={styles.cardTextWrap}>
-                <Text style={styles.cardTitle}>{option.title}</Text>
-                <Text style={styles.cardDescription}>{option.description}</Text>
+                <Text style={styles.cardTitle}>{t(`role${option.id.charAt(0).toUpperCase() + option.id.slice(1)}` as any)}</Text>
+                <Text style={styles.cardDescription}>{t(`role${option.id.charAt(0).toUpperCase() + option.id.slice(1)}Desc` as any)}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </Pressable>
@@ -101,10 +128,10 @@ export function RoleSelectorScreen() {
 
         <Pressable style={styles.reportButton}>
           <Ionicons name="flag-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.reportButtonText}>Reportar Problema</Text>
+          <Text style={styles.reportButtonText}>{t('reportProblem')}</Text>
         </Pressable>
 
-        <Text style={styles.termsText}>Términos y condiciones</Text>
+        <Text style={styles.termsText}>{t('terms')}</Text>
       </ScrollView>
     </View>
   );
@@ -311,5 +338,30 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     textAlign: 'center',
     marginTop: 16,
+  },
+  langRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginLeft: 12,
+  },
+  langBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  langBtnActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  langBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 1,
+  },
+  langBtnTextActive: {
+    color: colors.primary,
   },
 });

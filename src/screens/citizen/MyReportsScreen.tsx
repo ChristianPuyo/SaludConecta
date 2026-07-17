@@ -1,21 +1,45 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useReports } from '../../context/ReportsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
 import type { SymptomReport } from '../../data/mockData';
+import type { Translations } from '../../i18n';
+
+const SYMPTOM_MAP: Partial<Record<string, keyof Translations>> = {
+  'Fiebre': 'symptomFever',
+  'Dolor muscular': 'symptomMusclePain',
+  'Tos': 'symptomCough',
+};
+
+const DATE_MAP: Partial<Record<string, keyof Translations>> = {
+  'Hace 2 días': 'date2Days',
+  'Hace 3 semanas': 'date3Weeks',
+};
 
 export function MyReportsScreen() {
   const { reports } = useReports();
+  const { t } = useLanguage();
+
+  const translateSymptom = (symptom: string) => {
+    const key = SYMPTOM_MAP[symptom];
+    return key ? t(key) : symptom;
+  };
+
+  const translateDate = (date: string) => {
+    const key = DATE_MAP[date];
+    return key ? t(key) : date;
+  };
 
   const renderItem = ({ item }: { item: SymptomReport }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardDate}>{item.date}</Text>
+        <Text style={styles.cardDate}>{translateDate(item.date)}</Text>
         <RiskBadge level={item.risk} />
       </View>
       <Text style={styles.cardDistrict}>{item.district}</Text>
-      <Text style={styles.cardSymptoms}>{item.symptoms.join(', ')}</Text>
+      <Text style={styles.cardSymptoms}>{item.symptoms.map(translateSymptom).join(', ')}</Text>
     </View>
   );
 
@@ -26,8 +50,8 @@ export function MyReportsScreen() {
       data={reports}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
-      ListHeaderComponent={<Text style={styles.title}>Mis reportes</Text>}
-      ListEmptyComponent={<Text style={styles.empty}>Aún no tienes reportes.</Text>}
+      ListHeaderComponent={<Text style={styles.title}>{t('myReports')}</Text>}
+      ListEmptyComponent={<Text style={styles.empty}>{t('noReports')}</Text>}
     />
   );
 }

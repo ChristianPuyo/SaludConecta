@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useVisits } from '../../context/VisitsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
@@ -11,30 +12,31 @@ type Nav = BottomTabNavigationProp<AgentTabParamList, 'Home'>;
 export function AgentHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { visits } = useVisits();
+  const { t } = useLanguage();
   const pending = visits.filter((v) => !v.synced).length;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Panel del Agente</Text>
-      <Text style={styles.subtitle}>Registra la salud de tu comunidad, con o sin Internet</Text>
+      <Text style={styles.title}>{t('agentPanel')}</Text>
+      <Text style={styles.subtitle}>{t('agentSubtitle')}</Text>
 
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{visits.length}</Text>
-          <Text style={styles.statLabel}>Visitas registradas</Text>
+          <Text style={styles.statLabel}>{t('registeredVisits')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={[styles.statNumber, pending > 0 && { color: colors.warning }]}>{pending}</Text>
-          <Text style={styles.statLabel}>Pendientes de sincronizar</Text>
+          <Text style={styles.statLabel}>{t('pendingSync')}</Text>
         </View>
       </View>
 
       <View style={styles.offlineBanner}>
-        <Text style={styles.offlineText}>📡 Modo offline activo: los datos se guardan en tu dispositivo</Text>
+        <Text style={styles.offlineText}>{t('offlineMode')}</Text>
       </View>
 
       <Pressable style={styles.primaryButton} onPress={() => navigation.navigate('RegisterVisit')}>
-        <Text style={styles.primaryButtonText}>Registrar nueva visita</Text>
+        <Text style={styles.primaryButtonText}>{t('newVisit')}</Text>
       </Pressable>
     </ScrollView>
   );

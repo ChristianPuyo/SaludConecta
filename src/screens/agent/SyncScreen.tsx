@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import { useVisits, type CommunityVisit } from '../../context/VisitsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 
 export function SyncScreen() {
   const { visits, syncAll, isSyncing } = useVisits();
+  const { t } = useLanguage();
   const pending = visits.filter((v) => !v.synced);
 
   const renderItem = ({ item }: { item: CommunityVisit }) => (
@@ -12,7 +14,7 @@ export function SyncScreen() {
       <Text style={styles.cardTitle}>{item.patientName}</Text>
       <Text style={styles.cardSubtitle}>{item.community}</Text>
       <Text style={[styles.status, item.synced ? styles.synced : styles.pending]}>
-        {item.synced ? '✓ Sincronizado' : '⏳ Pendiente'}
+        {item.synced ? t('synced') : t('pending')}
       </Text>
     </View>
   );
@@ -26,8 +28,8 @@ export function SyncScreen() {
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text style={styles.title}>Sincronización</Text>
-          <Text style={styles.subtitle}>{pending.length} visita(s) pendiente(s)</Text>
+          <Text style={styles.title}>{t('sync')}</Text>
+          <Text style={styles.subtitle}>{t('pendingVisits', { count: String(pending.length) })}</Text>
           <Pressable
             style={[styles.syncButton, pending.length === 0 && styles.syncButtonDisabled]}
             onPress={syncAll}
@@ -36,12 +38,12 @@ export function SyncScreen() {
             {isSyncing ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.syncButtonText}>Sincronizar ahora</Text>
+              <Text style={styles.syncButtonText}>{t('syncNow')}</Text>
             )}
           </Pressable>
         </View>
       }
-      ListEmptyComponent={<Text style={styles.empty}>No hay visitas registradas todavía.</Text>}
+      ListEmptyComponent={<Text style={styles.empty}>{t('noVisits')}</Text>}
     />
   );
 }

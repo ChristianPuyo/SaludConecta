@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useVisits } from '../../context/VisitsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
@@ -11,6 +12,7 @@ type Nav = BottomTabNavigationProp<AgentTabParamList, 'RegisterVisit'>;
 export function RegisterVisitScreen() {
   const navigation = useNavigation<Nav>();
   const { addVisit } = useVisits();
+  const { t } = useLanguage();
   const [patientName, setPatientName] = useState('');
   const [community, setCommunity] = useState('');
   const [bloodPressure, setBloodPressure] = useState('');
@@ -21,11 +23,11 @@ export function RegisterVisitScreen() {
 
   const handleSave = () => {
     if (!patientName || !community) {
-      Alert.alert('Completa al menos el nombre y la comunidad');
+      Alert.alert(t('completeFields'));
       return;
     }
     addVisit({ patientName, community, bloodPressure, glucose, temperature, weight, height });
-    Alert.alert('Guardado localmente', 'La visita se sincronizará cuando haya conexión.');
+    Alert.alert(t('visitSaved'), t('visitSavedMsg'));
     setPatientName('');
     setCommunity('');
     setBloodPressure('');
@@ -38,16 +40,16 @@ export function RegisterVisitScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Registrar visita</Text>
+      <Text style={styles.title}>{t('registerVisit')}</Text>
 
       {[
-        { label: 'Nombre del paciente', value: patientName, onChange: setPatientName },
-        { label: 'Comunidad', value: community, onChange: setCommunity },
-        { label: 'Presión arterial', value: bloodPressure, onChange: setBloodPressure },
-        { label: 'Glucosa', value: glucose, onChange: setGlucose },
-        { label: 'Temperatura', value: temperature, onChange: setTemperature },
-        { label: 'Peso (kg)', value: weight, onChange: setWeight },
-        { label: 'Talla (cm)', value: height, onChange: setHeight },
+        { label: t('patientName'), value: patientName, onChange: setPatientName },
+        { label: t('community'), value: community, onChange: setCommunity },
+        { label: t('bloodPressure'), value: bloodPressure, onChange: setBloodPressure },
+        { label: t('glucose'), value: glucose, onChange: setGlucose },
+        { label: t('temperature'), value: temperature, onChange: setTemperature },
+        { label: t('weight'), value: weight, onChange: setWeight },
+        { label: t('height'), value: height, onChange: setHeight },
       ].map((field) => (
         <View key={field.label} style={styles.fieldGroup}>
           <Text style={styles.label}>{field.label}</Text>
@@ -61,7 +63,7 @@ export function RegisterVisitScreen() {
       ))}
 
       <Pressable style={styles.primaryButton} onPress={handleSave}>
-        <Text style={styles.primaryButtonText}>Guardar visita</Text>
+        <Text style={styles.primaryButtonText}>{t('saveVisit')}</Text>
       </Pressable>
     </ScrollView>
   );

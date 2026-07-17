@@ -3,38 +3,62 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useReports } from '../../context/ReportsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
+import type { Translations } from '../../i18n';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'Home'>;
+
+const SYMPTOM_MAP: Partial<Record<string, keyof Translations>> = {
+  'Fiebre': 'symptomFever',
+  'Dolor muscular': 'symptomMusclePain',
+  'Tos': 'symptomCough',
+};
+
+const DATE_MAP: Partial<Record<string, keyof Translations>> = {
+  'Hace 2 días': 'date2Days',
+  'Hace 3 semanas': 'date3Weeks',
+};
 
 export function CitizenHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { reports } = useReports();
+  const { t } = useLanguage();
   const lastReport = reports[0];
+
+  const translateSymptom = (symptom: string) => {
+    const key = SYMPTOM_MAP[symptom];
+    return key ? t(key) : symptom;
+  };
+
+  const translateDate = (date: string) => {
+    const key = DATE_MAP[date];
+    return key ? t(key) : date;
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Hola 👋</Text>
-      <Text style={styles.subtitle}>Guardian Salud AI cuida de tu comunidad</Text>
+      <Text style={styles.title}>{t('citizenGreeting')}</Text>
+      <Text style={styles.subtitle}>{t('citizenSubtitle')}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>Riesgo actual en tu distrito</Text>
+        <Text style={styles.cardLabel}>{t('currentRisk')}</Text>
         <RiskBadge level="medio" />
-        <Text style={styles.cardHint}>Callería · Basado en reportes de los últimos 7 días</Text>
+        <Text style={styles.cardHint}>{t('districtInfo')}</Text>
       </View>
 
       {lastReport && (
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Tu último reporte ({lastReport.date})</Text>
-          <Text style={styles.cardText}>{lastReport.symptoms.join(', ')}</Text>
+          <Text style={styles.cardLabel}>{t('lastReport')} ({translateDate(lastReport.date)})</Text>
+          <Text style={styles.cardText}>{lastReport.symptoms.map(translateSymptom).join(', ')}</Text>
           <RiskBadge level={lastReport.risk} />
         </View>
       )}
 
       <Pressable style={styles.primaryButton} onPress={() => navigation.navigate('ReportSymptoms')}>
-        <Text style={styles.primaryButtonText}>Reportar síntomas</Text>
+        <Text style={styles.primaryButtonText}>{t('reportSymptoms')}</Text>
       </Pressable>
     </ScrollView>
   );

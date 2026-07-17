@@ -1,18 +1,42 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { MOCK_ALERTS, type EpidemicAlert } from '../../data/mockData';
+import { useLanguage } from '../../context/LanguageContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
+import type { Translations } from '../../i18n';
+
+const ALERT_TITLE_MAP: Partial<Record<string, keyof Translations>> = {
+  'Posible brote de dengue': 'alertDengue',
+  'Incremento de casos respiratorios': 'alertRespiratory',
+};
+
+const ALERT_DETAIL_MAP: Partial<Record<string, keyof Translations>> = {
+  '35 reportes de fiebre en los últimos 7 días dentro del mismo sector.': 'alertDengueDetail',
+  '18 reportes de tos y fiebre en la última semana.': 'alertRespiratoryDetail',
+};
+
+const ALERT_DATE_MAP: Partial<Record<string, keyof Translations>> = {
+  'Hoy, 08:12': 'dateTodayTime',
+  'Ayer, 19:40': 'dateYesterday',
+};
 
 export function AlertsScreen() {
+  const { t } = useLanguage();
+
+  const translateAlertField = (value: string, map: Partial<Record<string, keyof Translations>>) => {
+    const key = map[value];
+    return key ? t(key) : value;
+  };
+
   const renderItem = ({ item }: { item: EpidemicAlert }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardTitle}>{translateAlertField(item.title, ALERT_TITLE_MAP)}</Text>
         <RiskBadge level={item.risk} />
       </View>
-      <Text style={styles.cardDistrict}>{item.district} · {item.date}</Text>
-      <Text style={styles.cardDetail}>{item.detail}</Text>
+      <Text style={styles.cardDistrict}>{item.district} · {translateAlertField(item.date, ALERT_DATE_MAP)}</Text>
+      <Text style={styles.cardDetail}>{translateAlertField(item.detail, ALERT_DETAIL_MAP)}</Text>
     </View>
   );
 
@@ -25,9 +49,9 @@ export function AlertsScreen() {
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text style={styles.title}>Alertas generadas por IA</Text>
+          <Text style={styles.title}>{t('alerts')}</Text>
           <Text style={styles.subtitle}>
-            Patrones detectados automáticamente a partir de los reportes ciudadanos
+            {t('alertsSubtitle')}
           </Text>
         </View>
       }

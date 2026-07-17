@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { MOCK_DISTRICT_RISK } from '../../data/mockData';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 
 const RISK_COLOR: Record<string, string> = {
@@ -10,31 +11,32 @@ const RISK_COLOR: Record<string, string> = {
 };
 
 export function AuthorityDashboardScreen() {
+  const { t } = useLanguage();
   const totalCases = MOCK_DISTRICT_RISK.reduce((sum, d) => sum + d.cases, 0);
   const alertDistricts = MOCK_DISTRICT_RISK.filter((d) => d.risk === 'alto').length;
   const maxCases = Math.max(...MOCK_DISTRICT_RISK.map((d) => d.cases));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Centro de Análisis</Text>
-      <Text style={styles.subtitle}>Vigilancia epidemiológica en tiempo real · Ucayali</Text>
+      <Text style={styles.title}>{t('analysisCenter')}</Text>
+      <Text style={styles.subtitle}>{t('dashboardSubtitle')}</Text>
 
       <View style={styles.kpiRow}>
         <View style={styles.kpiCard}>
           <Text style={styles.kpiNumber}>{totalCases}</Text>
-          <Text style={styles.kpiLabel}>Reportes totales</Text>
+          <Text style={styles.kpiLabel}>{t('totalReports')}</Text>
         </View>
         <View style={styles.kpiCard}>
           <Text style={[styles.kpiNumber, { color: colors.danger }]}>{alertDistricts}</Text>
-          <Text style={styles.kpiLabel}>Distritos en alerta</Text>
+          <Text style={styles.kpiLabel}>{t('alertDistricts')}</Text>
         </View>
         <View style={styles.kpiCard}>
           <Text style={styles.kpiNumber}>{MOCK_DISTRICT_RISK.length}</Text>
-          <Text style={styles.kpiLabel}>Distritos monitoreados</Text>
+          <Text style={styles.kpiLabel}>{t('monitoredDistricts')}</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Incidencia por distrito</Text>
+      <Text style={styles.sectionTitle}>{t('districtIncidence')}</Text>
       <View style={styles.card}>
         {MOCK_DISTRICT_RISK.map((district) => (
           <View key={district.district} style={styles.barRow}>
@@ -56,10 +58,9 @@ export function AuthorityDashboardScreen() {
       </View>
 
       <View style={styles.predictiveCard}>
-        <Text style={styles.predictiveTitle}>🔮 Analítica predictiva</Text>
+        <Text style={styles.predictiveTitle}>{t('predictiveAnalytics')}</Text>
         <Text style={styles.predictiveText}>
-          Basado en patrones históricos, se estima un incremento de casos de dengue en Callería durante las
-          próximas semanas.
+          {t('predictiveText')}
         </Text>
       </View>
     </ScrollView>

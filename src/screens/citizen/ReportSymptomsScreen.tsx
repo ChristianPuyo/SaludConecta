@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useReports } from '../../context/ReportsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'ReportSymptoms'>;
 
-const SYMPTOMS = ['Fiebre', 'Diarrea', 'Tos', 'Vómitos', 'Dolor muscular', 'Dolor de cabeza'];
+const SYMPTOMS_KEYS = ['fever', 'diarrhea', 'cough', 'vomiting', 'musclePain', 'headache'] as const;
 
 function classifyRisk(symptomCount: number, hasFever: boolean): RiskLevel {
   if (symptomCount >= 3 && hasFever) return 'alto';
@@ -20,6 +21,7 @@ function classifyRisk(symptomCount: number, hasFever: boolean): RiskLevel {
 export function ReportSymptomsScreen() {
   const navigation = useNavigation<Nav>();
   const { addReport } = useReports();
+  const { t } = useLanguage();
   const [selected, setSelected] = useState<string[]>([]);
   const [district, setDistrict] = useState('');
   const [community, setCommunity] = useState('');
@@ -32,20 +34,20 @@ export function ReportSymptomsScreen() {
 
   const handleSubmit = () => {
     if (selected.length === 0) {
-      Alert.alert('Selecciona al menos un síntoma');
+      Alert.alert(t('selectSymptomError'));
       return;
     }
-    const risk = classifyRisk(selected.length, selected.includes('Fiebre'));
+    const risk = classifyRisk(selected.length, selected.includes(t('fever')));
     addReport({
       id: Date.now().toString(),
-      date: 'Hoy',
-      district: district || 'Callería',
-      symptoms: selected,
+      date: t('today'),
+      district: district || t('defaultDistrict'),
+      symptoms: selected.map((key) => t(key as any)),
       risk,
     });
     Alert.alert(
-      'Reporte enviado',
-      `La IA clasificó tu reporte como riesgo ${risk.toUpperCase()}. Gracias por ayudar a proteger a tu comunidad.`
+      t('reportSent'),
+      t('reportSentMsg', { risk: risk.toUpperCase() })
     );
     setSelected([]);
     setDistrict('');
@@ -55,19 +57,20 @@ export function ReportSymptomsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
-      <Text style={styles.subtitle}>Selecciona todos los síntomas que presentas</Text>
+      <Text style={styles.title}>{t('howAreYou')}</Text>
+      <Text style={styles.subtitle}>{t('selectSymptoms')}</Text>
 
       <View style={styles.chipsWrap}>
-        {SYMPTOMS.map((symptom) => {
-          const active = selected.includes(symptom);
+        {SYMPTOMS_KEYS.map((symptomKey) => {
+          const label = t(symptomKey);
+          const active = selected.includes(label);
           return (
             <Pressable
-              key={symptom}
-              onPress={() => toggleSymptom(symptom)}
+              key={symptomKey}
+              onPress={() => toggleSymptom(label)}
               style={[styles.chip, active && styles.chipActive]}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{symptom}</Text>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
             </Pressable>
           );
         })}
@@ -75,21 +78,21 @@ export function ReportSymptomsScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Distrito"
+        placeholder={t('district')}
         placeholderTextColor={colors.textSecondary}
         value={district}
         onChangeText={setDistrict}
       />
       <TextInput
         style={styles.input}
-        placeholder="Comunidad"
+        placeholder={t('community')}
         placeholderTextColor={colors.textSecondary}
         value={community}
         onChangeText={setCommunity}
       />
 
       <Pressable style={styles.primaryButton} onPress={handleSubmit}>
-        <Text style={styles.primaryButtonText}>Enviar reporte</Text>
+        <Text style={styles.primaryButtonText}>{t('sendReport')}</Text>
       </Pressable>
     </ScrollView>
   );

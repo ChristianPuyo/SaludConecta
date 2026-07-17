@@ -5,6 +5,7 @@ import { AuthorityDashboardScreen } from '../screens/authority/AuthorityDashboar
 import { RiskMapScreen } from '../screens/authority/RiskMapScreen';
 import { AlertsScreen } from '../screens/authority/AlertsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
+import { useLanguage } from '../context/LanguageContext';
 import { colors } from '../theme/colors';
 
 export type AuthorityTabParamList = {
@@ -16,6 +17,7 @@ export type AuthorityTabParamList = {
 const Tab = createBottomTabNavigator<AuthorityTabParamList>();
 
 export function AuthorityNavigator() {
+  const { t } = useLanguage();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -27,7 +29,7 @@ export function AuthorityNavigator() {
         name="Dashboard"
         component={AuthorityDashboardScreen}
         options={{
-          title: 'Dashboard',
+          title: t('tabDashboard'),
           tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" color={color} size={size} />,
         }}
       />
@@ -35,7 +37,7 @@ export function AuthorityNavigator() {
         name="RiskMap"
         component={RiskMapScreen}
         options={{
-          title: 'Mapa de Riesgo',
+          title: t('tabRiskMap'),
           tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" color={color} size={size} />,
         }}
       />
@@ -43,7 +45,7 @@ export function AuthorityNavigator() {
         name="Alerts"
         component={AlertsScreen}
         options={{
-          title: 'Alertas',
+          title: t('tabAlerts'),
           tabBarIcon: ({ color, size }) => <Ionicons name="warning-outline" color={color} size={size} />,
         }}
       />

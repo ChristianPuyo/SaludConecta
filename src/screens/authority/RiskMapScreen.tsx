@@ -1,29 +1,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { MOCK_DISTRICT_RISK } from '../../data/mockData';
+import { useLanguage } from '../../context/LanguageContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
 
 export function RiskMapScreen() {
+  const { t } = useLanguage();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Mapa de riesgo</Text>
+      <Text style={styles.title}>{t('riskMap')}</Text>
       <Text style={styles.subtitle}>
-        Vista previa por distrito. La integración con mapa geoespacial interactivo está en desarrollo.
+        {t('riskMapSubtitle')}
       </Text>
 
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: colors.danger }]} />
-          <Text style={styles.legendText}>Alto</Text>
+          <Text style={styles.legendText}>{t('riskHigh')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: colors.warning }]} />
-          <Text style={styles.legendText}>Medio</Text>
+          <Text style={styles.legendText}>{t('riskMedium')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: colors.success }]} />
-          <Text style={styles.legendText}>Bajo</Text>
+          <Text style={styles.legendText}>{t('riskLow')}</Text>
         </View>
       </View>
 
@@ -31,7 +34,7 @@ export function RiskMapScreen() {
         <View key={district.district} style={styles.card}>
           <View>
             <Text style={styles.cardTitle}>{district.district}</Text>
-            <Text style={styles.cardSubtitle}>{district.cases} casos activos</Text>
+            <Text style={styles.cardSubtitle}>{district.cases} {t('activeCases')}</Text>
           </View>
           <RiskBadge level={district.risk} />
         </View>
