@@ -1,4 +1,4 @@
-import type { RiskLevel } from '../components/RiskBadge';
+import type { RiskLevel } from '../types/health';
 
 export interface SymptomReport {
   id: string;

@@ -1,9 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { AgentHomeScreen } from '../screens/agent/AgentHomeScreen';
 import { RegisterVisitScreen } from '../screens/agent/RegisterVisitScreen';
 import { SyncScreen } from '../screens/agent/SyncScreen';
+import { SettingsScreen } from '../screens/citizen/SettingsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
 import { colors } from '../theme/colors';
 
@@ -11,9 +13,23 @@ export type AgentTabParamList = {
   Home: undefined;
   RegisterVisit: undefined;
   Sync: undefined;
+  MoreTab: undefined;
+};
+
+export type AgentStackParamList = {
+  Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator<AgentTabParamList>();
+const MoreStack = createNativeStackNavigator<AgentStackParamList>();
+
+function MoreStackScreen() {
+  return (
+    <MoreStack.Navigator screenOptions={{ headerShown: false }}>
+      <MoreStack.Screen name="Settings" component={SettingsScreen} />
+    </MoreStack.Navigator>
+  );
+}
 
 export function AgentNavigator() {
   return (
@@ -45,6 +61,14 @@ export function AgentNavigator() {
         options={{
           title: 'Sincronizar',
           tabBarIcon: ({ color, size }) => <Ionicons name="sync-outline" color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="MoreTab"
+        component={MoreStackScreen}
+        options={{
+          title: 'Más',
+          tabBarIcon: ({ color, size }) => <Ionicons name="ellipsis-horizontal-circle-outline" color={color} size={size} />,
         }}
       />
     </Tab.Navigator>

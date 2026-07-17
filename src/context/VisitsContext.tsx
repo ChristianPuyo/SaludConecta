@@ -1,20 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
-
-export interface CommunityVisit {
-  id: string;
-  patientName: string;
-  community: string;
-  bloodPressure: string;
-  glucose: string;
-  temperature: string;
-  weight: string;
-  height: string;
-  synced: boolean;
-}
+import type { CommunityVisit } from '../models/visit';
 
 interface VisitsContextValue {
   visits: CommunityVisit[];
-  addVisit: (visit: Omit<CommunityVisit, 'id' | 'synced'>) => void;
+  addVisit: (visit: Omit<CommunityVisit, 'id' | 'synced' | 'createdAt' | 'visitDate'>) => void;
   syncAll: () => Promise<void>;
   isSyncing: boolean;
 }
@@ -25,8 +14,16 @@ export function VisitsProvider({ children }: { children: React.ReactNode }) {
   const [visits, setVisits] = useState<CommunityVisit[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const addVisit = (visit: Omit<CommunityVisit, 'id' | 'synced'>) => {
-    setVisits((prev) => [{ ...visit, id: Date.now().toString(), synced: false }, ...prev]);
+  const addVisit = (visit: Omit<CommunityVisit, 'id' | 'synced' | 'createdAt' | 'visitDate'>) => {
+    const now = new Date().toISOString();
+    const newVisit: CommunityVisit = {
+      ...visit,
+      id: Date.now().toString(),
+      synced: false,
+      createdAt: now,
+      visitDate: now,
+    };
+    setVisits((prev) => [newVisit, ...prev]);
   };
 
   const syncAll = async () => {
@@ -45,8 +42,6 @@ export function VisitsProvider({ children }: { children: React.ReactNode }) {
 
 export function useVisits() {
   const context = useContext(VisitsContext);
-  if (!context) {
-    throw new Error('useVisits must be used within a VisitsProvider');
-  }
+  if (!context) throw new Error('useVisits must be used within a VisitsProvider');
   return context;
 }

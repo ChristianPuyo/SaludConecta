@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import { useVisits, type CommunityVisit } from '../../context/VisitsContext';
+import { useVisits } from '../../context/VisitsContext';
+import type { CommunityVisit } from '../../models/visit';
 import { colors } from '../../theme/colors';
 
 export function SyncScreen() {
