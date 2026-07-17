@@ -20,7 +20,18 @@ export function AgentNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
-        tabBarActiveTintColor: colors.primary,
+        headerTitleStyle: { fontWeight: '800', color: colors.textPrimary, fontSize: 16 },
+        tabBarActiveTintColor: colors.secondary,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 4,
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
+          borderTopWidth: 0.5,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tab.Screen
@@ -28,7 +39,7 @@ export function AgentNavigator() {
         component={AgentHomeScreen}
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -36,7 +47,7 @@ export function AgentNavigator() {
         component={RegisterVisitScreen}
         options={{
           title: 'Nueva Visita',
-          tabBarIcon: ({ color, size }) => <Ionicons name="medkit-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="medkit" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -44,7 +55,7 @@ export function AgentNavigator() {
         component={SyncScreen}
         options={{
           title: 'Sincronizar',
-          tabBarIcon: ({ color, size }) => <Ionicons name="sync-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="sync" size={size - 2} color={color} />,
         }}
       />
     </Tab.Navigator>

@@ -20,7 +20,18 @@ export function AuthorityNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
-        tabBarActiveTintColor: colors.primary,
+        headerTitleStyle: { fontWeight: '800', color: colors.textPrimary, fontSize: 16 },
+        tabBarActiveTintColor: colors.danger,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 4,
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
+          borderTopWidth: 0.5,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tab.Screen
@@ -28,7 +39,7 @@ export function AuthorityNavigator() {
         component={AuthorityDashboardScreen}
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -36,7 +47,7 @@ export function AuthorityNavigator() {
         component={RiskMapScreen}
         options={{
           title: 'Mapa de Riesgo',
-          tabBarIcon: ({ color, size }) => <Ionicons name="map-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -44,7 +55,7 @@ export function AuthorityNavigator() {
         component={AlertsScreen}
         options={{
           title: 'Alertas',
-          tabBarIcon: ({ color, size }) => <Ionicons name="warning-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="notifications" size={size - 2} color={color} />,
         }}
       />
     </Tab.Navigator>

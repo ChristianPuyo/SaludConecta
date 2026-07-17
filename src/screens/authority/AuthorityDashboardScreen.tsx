@@ -10,6 +10,12 @@ const RISK_COLOR: Record<string, string> = {
   bajo: colors.success,
 };
 
+const RISK_BG: Record<string, string> = {
+  alto: colors.dangerLight,
+  medio: colors.warningLight,
+  bajo: colors.successLight,
+};
+
 export function AuthorityDashboardScreen() {
   const totalCases = MOCK_DISTRICT_RISK.reduce((sum, d) => sum + d.cases, 0);
   const alertDistricts = MOCK_DISTRICT_RISK.filter((d) => d.risk === 'alto').length;
@@ -17,34 +23,37 @@ export function AuthorityDashboardScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header Info */}
       <View style={styles.header}>
-        <Text style={styles.title}>Centro de Análisis</Text>
-        <Text style={styles.subtitle}>Vigilancia epidemiológica en tiempo real · Ucayali</Text>
+        <Text style={styles.title}>Centro de Analisis</Text>
+        <Text style={styles.subtitle}>Vigilancia epidemiologica en tiempo real</Text>
       </View>
 
-      {/* KPI Cards Board */}
       <View style={styles.kpiRow}>
         <View style={styles.kpiCard}>
-          <Ionicons name={"documents-outline" as any} size={20} color={colors.primary} />
+          <View style={[styles.kpiIconWrap, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="documents" size={18} color={colors.primary} />
+          </View>
           <Text style={styles.kpiNumber}>{totalCases}</Text>
-          <Text style={styles.kpiLabel}>Reportes Totales</Text>
+          <Text style={styles.kpiLabel}>Reportes</Text>
         </View>
 
         <View style={styles.kpiCard}>
-          <Ionicons name={"alert-circle-outline" as any} size={20} color={colors.danger} />
+          <View style={[styles.kpiIconWrap, { backgroundColor: colors.dangerLight }]}>
+            <Ionicons name="alert-circle" size={18} color={colors.danger} />
+          </View>
           <Text style={[styles.kpiNumber, { color: colors.danger }]}>{alertDistricts}</Text>
-          <Text style={styles.kpiLabel}>En Alerta Alta</Text>
+          <Text style={styles.kpiLabel}>Alerta Alta</Text>
         </View>
 
         <View style={styles.kpiCard}>
-          <Ionicons name={"map-outline" as any} size={20} color={colors.secondary} />
+          <View style={[styles.kpiIconWrap, { backgroundColor: colors.secondaryLight }]}>
+            <Ionicons name="map" size={18} color={colors.secondary} />
+          </View>
           <Text style={styles.kpiNumber}>{MOCK_DISTRICT_RISK.length}</Text>
-          <Text style={styles.kpiLabel}>Zonas Activas</Text>
+          <Text style={styles.kpiLabel}>Zonas</Text>
         </View>
       </View>
 
-      {/* Bar Chart Section */}
       <Text style={styles.sectionTitle}>Incidencia por Distrito</Text>
       <View style={styles.chartCard}>
         {MOCK_DISTRICT_RISK.map((district) => (
@@ -54,7 +63,14 @@ export function AuthorityDashboardScreen() {
                 <View style={[styles.statusIndicator, { backgroundColor: RISK_COLOR[district.risk] }]} />
                 <Text style={styles.barLabel}>{district.district}</Text>
               </View>
-              <Text style={styles.barValue}>{district.cases} casos</Text>
+              <View style={styles.barRight}>
+                <View style={[styles.riskMiniBadge, { backgroundColor: RISK_BG[district.risk] }]}>
+                  <Text style={[styles.riskMiniText, { color: RISK_COLOR[district.risk] }]}>
+                    {district.risk.charAt(0).toUpperCase() + district.risk.slice(1)}
+                  </Text>
+                </View>
+                <Text style={styles.barValue}>{district.cases}</Text>
+              </View>
             </View>
             <View style={styles.barTrack}>
               <View
@@ -71,14 +87,16 @@ export function AuthorityDashboardScreen() {
         ))}
       </View>
 
-      {/* Predictive Analytical Report */}
       <View style={styles.predictiveCard}>
         <View style={styles.predictiveHeader}>
-          <Ionicons name={"sparkles" as any} size={20} color={colors.secondary} />
-          <Text style={styles.predictiveTitle}>🔮 Analítica Predictiva IA</Text>
+          <View style={styles.predictiveIconWrap}>
+            <Ionicons name="sparkles" size={16} color={colors.secondary} />
+          </View>
+          <Text style={styles.predictiveTitle}>Analitica Predictiva IA</Text>
         </View>
         <Text style={styles.predictiveText}>
-          Basado en patrones de lluvias e históricos estacionales, se proyecta un incremento del 24% en reportes febriles compatibles con dengue en **Callería** para las próximas 3 semanas. Se recomienda iniciar campañas preventivas focalizadas.
+          Basado en patrones de lluvias e historicos estacionales, se proyecta un incremento del 24% en reportes febriles
+          compatibles con dengue en Calleria para las proximas 3 semanas. Se recomienda iniciar campanas preventivas.
         </Text>
       </View>
     </ScrollView>
@@ -87,59 +105,61 @@ export function AuthorityDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, gap: 16 },
-  header: { gap: 4, marginVertical: 4 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, color: colors.textSecondary },
-  kpiRow: { flexDirection: 'row', gap: 10 },
+  content: { padding: 20, gap: 14 },
+  header: { gap: 2, marginBottom: 2 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, color: colors.textSecondary },
+  kpiRow: { flexDirection: 'row', gap: 8 },
   kpiCard: {
     flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 14,
+    borderRadius: 14,
+    padding: 12,
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     borderWidth: 1,
     borderColor: colors.border,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
   },
-  kpiNumber: { fontSize: 24, fontWeight: '800', color: colors.primary, marginTop: 2 },
+  kpiIconWrap: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  kpiNumber: { fontSize: 22, fontWeight: '800', color: colors.primary, marginTop: 2 },
   kpiLabel: { fontSize: 11, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginTop: 6, letterSpacing: -0.2 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.2 },
   chartCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    gap: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    gap: 14,
   },
   barRow: { gap: 6 },
   barHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   barLabelWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   statusIndicator: { width: 8, height: 8, borderRadius: 4 },
-  barLabel: { fontSize: 14, color: colors.textPrimary, fontWeight: '700' },
-  barTrack: { height: 10, borderRadius: 5, backgroundColor: '#F1F5F9', overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 5 },
-  barValue: { fontSize: 13, color: colors.textSecondary, fontWeight: '700' },
+  barLabel: { fontSize: 13, color: colors.textPrimary, fontWeight: '700' },
+  barRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  riskMiniBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  riskMiniText: { fontSize: 10, fontWeight: '700' },
+  barTrack: { height: 8, borderRadius: 4, backgroundColor: colors.borderLight, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 4 },
+  barValue: { fontSize: 13, color: colors.textPrimary, fontWeight: '800', minWidth: 22, textAlign: 'right' },
   predictiveCard: {
     backgroundColor: '#EEF2FF',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 16,
+    padding: 16,
     gap: 8,
     borderWidth: 1,
     borderColor: '#E0E7FF',
   },
-  predictiveHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  predictiveTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  predictiveText: { fontSize: 13, color: colors.textSecondary, lineHeight: 20 },
+  predictiveHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  predictiveIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#DBEAFE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  predictiveTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  predictiveText: { fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
 });

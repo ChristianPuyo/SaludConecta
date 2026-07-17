@@ -20,23 +20,18 @@ export function CitizenNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerRight: () => <SwitchRoleButton />,
-        headerTitleStyle: {
-          fontWeight: '800',
-          color: colors.textPrimary,
-        },
+        headerTitleStyle: { fontWeight: '800', color: colors.textPrimary, fontSize: 16 },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-          borderTopColor: '#E2E8F0',
-          backgroundColor: '#FFFFFF',
+          height: 60,
+          paddingBottom: 6,
+          paddingTop: 4,
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
+          borderTopWidth: 0.5,
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '700',
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tab.Screen
@@ -44,7 +39,7 @@ export function CitizenNavigator() {
         component={CitizenHomeScreen}
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -52,7 +47,7 @@ export function CitizenNavigator() {
         component={ReportSymptomsScreen}
         options={{
           title: 'Reportar',
-          tabBarIcon: ({ color, size }) => <Ionicons name="add-circle-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="pulse" size={size - 2} color={color} />,
         }}
       />
       <Tab.Screen
@@ -60,7 +55,7 @@ export function CitizenNavigator() {
         component={MyReportsScreen}
         options={{
           title: 'Mis Reportes',
-          tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="document-text" size={size - 2} color={color} />,
         }}
       />
     </Tab.Navigator>
