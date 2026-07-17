@@ -6,6 +6,7 @@ import { RegisterVisitScreen } from '../screens/agent/RegisterVisitScreen';
 import { SyncScreen } from '../screens/agent/SyncScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
 import { BackButton } from '../components/BackButton';
+import { useLanguage } from '../context/LanguageContext';
 import { colors } from '../theme/colors';
 
 export type AgentTabParamList = {
@@ -17,6 +18,7 @@ export type AgentTabParamList = {
 const Tab = createBottomTabNavigator<AgentTabParamList>();
 
 export function AgentNavigator() {
+  const { t } = useLanguage();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -29,7 +31,7 @@ export function AgentNavigator() {
         name="Home"
         component={AgentHomeScreen}
         options={{
-          title: 'Inicio',
+          title: t.tab_home,
           tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} />,
         }}
       />
@@ -37,7 +39,7 @@ export function AgentNavigator() {
         name="RegisterVisit"
         component={RegisterVisitScreen}
         options={{
-          title: 'Nueva Visita',
+          title: t.tab_new_visit,
           tabBarIcon: ({ color, size }) => <Ionicons name="medkit-outline" color={color} size={size} />,
         }}
       />
@@ -45,7 +47,7 @@ export function AgentNavigator() {
         name="Sync"
         component={SyncScreen}
         options={{
-          title: 'Sincronizar',
+          title: t.tab_sync,
           tabBarIcon: ({ color, size }) => <Ionicons name="sync-outline" color={color} size={size} />,
         }}
       />

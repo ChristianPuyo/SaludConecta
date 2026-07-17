@@ -7,6 +7,7 @@ import { IaScannerScreen } from '../screens/citizen/IaScannerScreen';
 import { MyReportsScreen } from '../screens/citizen/MyReportsScreen';
 import { SwitchRoleButton } from '../components/SwitchRoleButton';
 import { BackButton } from '../components/BackButton';
+import { useLanguage } from '../context/LanguageContext';
 import { colors } from '../theme/colors';
 
 export type CitizenTabParamList = {
@@ -19,6 +20,7 @@ export type CitizenTabParamList = {
 const Tab = createBottomTabNavigator<CitizenTabParamList>();
 
 export function CitizenNavigator() {
+  const { t } = useLanguage();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -31,7 +33,7 @@ export function CitizenNavigator() {
         name="Home"
         component={CitizenHomeScreen}
         options={{
-          title: 'Inicio',
+          title: t.tab_home,
           tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} />,
         }}
       />
@@ -39,7 +41,7 @@ export function CitizenNavigator() {
         name="ReportSymptoms"
         component={ReportSymptomsScreen}
         options={{
-          title: 'Reportar',
+          title: t.tab_report,
           tabBarIcon: ({ color, size }) => <Ionicons name="add-circle-outline" color={color} size={size} />,
         }}
       />
@@ -47,7 +49,7 @@ export function CitizenNavigator() {
         name="Scanner"
         component={IaScannerScreen}
         options={{
-          title: 'Escanear IA',
+          title: t.tab_scanner,
           tabBarIcon: ({ color, size }) => <Ionicons name="camera-outline" color={color} size={size} />,
         }}
       />
@@ -55,7 +57,7 @@ export function CitizenNavigator() {
         name="MyReports"
         component={MyReportsScreen}
         options={{
-          title: 'Mis Reportes',
+          title: t.tab_my_reports,
           tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" color={color} size={size} />,
         }}
       />

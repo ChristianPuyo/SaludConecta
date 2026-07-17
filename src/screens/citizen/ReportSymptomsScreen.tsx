@@ -5,6 +5,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useReports } from '../../context/ReportsContext';
 import { colors } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
+import { useLanguage } from '../../context/LanguageContext';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'ReportSymptoms'>;
@@ -81,75 +83,21 @@ function analyzeSymptoms(symptoms: string[], ageNum?: number, sexStr?: string): 
   };
 }
 
-const LANGUAGES: Record<'es' | 'shp', {
-  title: string;
-  subtitle: string;
-  symptoms: Record<string, string>;
-  personalData: string;
-  age: string;
-  sex: string;
-  location: string;
-  district: string;
-  community: string;
-  submit: string;
-  modalTitle: string;
-  modalAnalysis: string;
-  modalDisclaimer: string;
-  modalButton: string;
-}> = {
-  es: {
-    title: '¿Cómo te sientes hoy?',
-    subtitle: 'Selecciona todos los síntomas que presentas',
-    symptoms: {
-      'Fiebre': 'Fiebre',
-      'Diarrea': 'Diarrea',
-      'Tos': 'Tos',
-      'Vómitos': 'Vómitos',
-      'Dolor muscular': 'Dolor muscular',
-      'Dolor de cabeza': 'Dolor de cabeza'
-    },
-    personalData: 'Datos Personales (Opcional)',
-    age: 'Edad (años)',
-    sex: 'Sexo',
-    location: 'Ubicación',
-    district: 'Distrito (ej. Callería, Yarinacocha)',
-    community: 'Comunidad / Barrio (ej. San José)',
-    submit: 'Enviar reporte a la IA',
-    modalTitle: 'Evaluación Clínica Automatizada',
-    modalAnalysis: '🔍 Análisis Explicativo de la IA:',
-    modalDisclaimer: 'Esta es una clasificación automatizada basada en reglas epidemiológicas de la Amazonía. No reemplaza un diagnóstico médico profesional. Si tus síntomas empeoran, acude de inmediato al centro de salud más cercano.',
-    modalButton: 'Entendido, ver mis reportes'
-  },
-  shp: {
-    title: '¿Jawekeskataki min joiba?',
-    subtitle: 'Min yoba jati wenebo tapani katakwe',
-    symptoms: {
-      'Fiebre': 'Patsa / Jonika 🌡️',
-      'Diarrea': 'Poi kene 🚽',
-      'Tos': 'Osa 🗣️',
-      'Vómitos': 'Xana 🤮',
-      'Dolor muscular': 'Nami yoba 💪',
-      'Dolor de cabeza': 'Mapo yoba 🧠'
-    },
-    personalData: 'Jonin Shinan (Opcional)',
-    age: 'Baritia (años)',
-    sex: 'Joni / Xanu',
-    location: 'Jema',
-    district: 'Distrito (ej. Callería)',
-    community: 'Jema / Barrio (ej. San José)',
-    submit: 'Reporte IA Sino ementi',
-    modalTitle: 'IA XAI Raoninti Shinan',
-    modalAnalysis: '🔍 IA shinan oninti:',
-    modalDisclaimer: 'Jato oninti shinan riki. Joni rao oniyapabo manchati jinki. Rao yora wesoa katon, rao xoboain kawe.',
-    modalButton: 'Tapaki, reports ointi'
-  }
-};
+// Symptom display map: Spanish key → localized display name
+const SYMPTOM_DISPLAY_MAP = {
+  'Fiebre':         (t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_fever,
+  'Diarrea':        (t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_diarrhea,
+  'Tos':            (t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_cough,
+  'Vómitos':        (t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_vomiting,
+  'Dolor muscular': (t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_muscle_pain,
+  'Dolor de cabeza':(t: ReturnType<typeof useLanguage>['t']) => t.report_symptom_headache,
+} as const;
 
 export function ReportSymptomsScreen() {
   const navigation = useNavigation<Nav>();
   const { addReport } = useReports();
-  const [lang, setLang] = useState<'es' | 'shp'>('es');
-  const [selected, setSelected] = useState<string[]>([]); // Contains the Spanish keys
+  const { t } = useLanguage();
+  const [selected, setSelected] = useState<string[]>([]); // Spanish keys as source of truth
   const [district, setDistrict] = useState('');
   const [community, setCommunity] = useState('');
   const [age, setAge] = useState('');
@@ -159,8 +107,6 @@ export function ReportSymptomsScreen() {
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
-  const t = LANGUAGES[lang];
-
   const toggleSymptom = (symptomKey: string) => {
     setSelected((prev) =>
       prev.includes(symptomKey) ? prev.filter((item) => item !== symptomKey) : [...prev, symptomKey]
@@ -169,7 +115,7 @@ export function ReportSymptomsScreen() {
 
   const handleSubmit = () => {
     if (selected.length === 0) {
-      Alert.alert(lang === 'es' ? 'Error' : 'Katon', lang === 'es' ? 'Selecciona al menos un síntoma' : 'Wenebo katakwe');
+      Alert.alert(t.error, t.alert_symptom_validation);
       return;
     }
     
@@ -186,7 +132,7 @@ export function ReportSymptomsScreen() {
       community: community || 'General',
       age: ageNum,
       sex: sex || undefined,
-      symptoms: selected.map(k => LANGUAGES[lang].symptoms[k] || k), // Show display name in selected language
+      symptoms: selected.map(k => SYMPTOM_DISPLAY_MAP[k as keyof typeof SYMPTOM_DISPLAY_MAP]?.(t) ?? k),
       risk: analysis.risk,
       reasoning: analysis.reasoning,
     });
@@ -213,28 +159,15 @@ export function ReportSymptomsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Language Switcher */}
-      <View style={styles.langContainer}>
-        <Pressable
-          style={[styles.langButton, lang === 'es' && styles.langButtonActive]}
-          onPress={() => setLang('es')}
-        >
-          <Text style={[styles.langButtonText, lang === 'es' && styles.langButtonTextActive]}>Español 🇪🇸</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.langButton, lang === 'shp' && styles.langButtonActive]}
-          onPress={() => setLang('shp')}
-        >
-          <Text style={[styles.langButtonText, lang === 'shp' && styles.langButtonTextActive]}>Shipibo 🪶</Text>
-        </Pressable>
-      </View>
+      <LanguageSwitcher />
 
-      <Text style={styles.title}>{t.title}</Text>
-      <Text style={styles.subtitle}>{t.subtitle}</Text>
+      <Text style={styles.title}>{t.report_title}</Text>
+      <Text style={styles.subtitle}>{t.report_subtitle}</Text>
 
       <View style={styles.chipsWrap}>
         {SYMPTOMS.map((symptomKey) => {
           const active = selected.includes(symptomKey);
-          const displayName = t.symptoms[symptomKey] || symptomKey;
+          const displayName = SYMPTOM_DISPLAY_MAP[symptomKey as keyof typeof SYMPTOM_DISPLAY_MAP]?.(t) ?? symptomKey;
           return (
             <Pressable
               key={symptomKey}
@@ -247,11 +180,11 @@ export function ReportSymptomsScreen() {
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>{t.personalData}</Text>
+      <Text style={styles.sectionLabel}>{t.report_personal_data}</Text>
       <View style={styles.row}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
-          placeholder={t.age}
+          placeholder={t.report_age}
           placeholderTextColor={colors.textSecondary}
           value={age}
           onChangeText={setAge}
@@ -262,35 +195,35 @@ export function ReportSymptomsScreen() {
             style={[styles.sexButton, sex === 'Masculino' && styles.sexButtonActive]}
             onPress={() => setSex('Masculino')}
           >
-            <Text style={[styles.sexText, sex === 'Masculino' && styles.sexTextActive]}>M</Text>
+            <Text style={[styles.sexText, sex === 'Masculino' && styles.sexTextActive]}>{t.report_sex_male[0]}</Text>
           </Pressable>
           <Pressable
             style={[styles.sexButton, sex === 'Femenino' && styles.sexButtonActive]}
             onPress={() => setSex('Femenino')}
           >
-            <Text style={[styles.sexText, sex === 'Femenino' && styles.sexTextActive]}>F</Text>
+            <Text style={[styles.sexText, sex === 'Femenino' && styles.sexTextActive]}>{t.report_sex_female[0]}</Text>
           </Pressable>
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>{t.location}</Text>
+      <Text style={styles.sectionLabel}>{t.report_location}</Text>
       <TextInput
         style={styles.input}
-        placeholder={t.district}
+        placeholder={t.report_district_placeholder}
         placeholderTextColor={colors.textSecondary}
         value={district}
         onChangeText={setDistrict}
       />
       <TextInput
         style={styles.input}
-        placeholder={t.community}
+        placeholder={t.report_community_placeholder}
         placeholderTextColor={colors.textSecondary}
         value={community}
         onChangeText={setCommunity}
       />
 
       <Pressable style={styles.primaryButton} onPress={handleSubmit}>
-        <Text style={styles.primaryButtonText}>{t.submit}</Text>
+        <Text style={styles.primaryButtonText}>{t.report_submit}</Text>
       </Pressable>
 
       {/* MODAL EXPLICATIVO DE IA */}
@@ -300,23 +233,23 @@ export function ReportSymptomsScreen() {
             <View style={styles.modalHeader}>
               <Ionicons name={cardColor.icon as any} size={48} color={cardColor.text} />
               <Text style={[styles.modalRiskTitle, { color: cardColor.text }]}>
-                Riesgo {(result?.risk || '').toUpperCase()}
+                {(result?.risk || '').toUpperCase()}
               </Text>
-              <Text style={styles.modalMeta}>{t.modalTitle}</Text>
+              <Text style={styles.modalMeta}>{t.report_modal_title}</Text>
             </View>
 
             <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent}>
               <View style={[styles.reasonCard, { backgroundColor: cardColor.bg, borderColor: cardColor.border }]}>
-                <Text style={styles.reasonLabel}>{t.modalAnalysis}</Text>
+                <Text style={styles.reasonLabel}>{t.report_modal_analysis_label}</Text>
                 <Text style={styles.reasonText}>{result?.reasoning}</Text>
               </View>
 
-              <Text style={styles.disclaimerTitle}>⚠️ {lang === 'es' ? 'Nota importante:' : 'Shinan senen:'}</Text>
-              <Text style={styles.disclaimerText}>{t.modalDisclaimer}</Text>
+              <Text style={styles.disclaimerTitle}>⚠️ {t.error}</Text>
+              <Text style={styles.disclaimerText}>{t.report_modal_disclaimer}</Text>
             </ScrollView>
 
             <Pressable style={styles.modalCloseButton} onPress={handleCloseModal}>
-              <Text style={styles.modalCloseButtonText}>{t.modalButton}</Text>
+              <Text style={styles.modalCloseButtonText}>{t.report_modal_button}</Text>
             </Pressable>
           </View>
         </View>
@@ -328,11 +261,6 @@ export function ReportSymptomsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 12 },
-  langContainer: { flexDirection: 'row', backgroundColor: '#E2E8F0', padding: 3, borderRadius: 10, alignSelf: 'flex-end', marginBottom: 4 },
-  langButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  langButtonActive: { backgroundColor: colors.primary },
-  langButtonText: { fontSize: 11, fontWeight: '700', color: colors.textSecondary },
-  langButtonTextActive: { color: '#fff' },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },

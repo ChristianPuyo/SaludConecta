@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useReports } from '../../context/ReportsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,45 +11,46 @@ import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
 
 type Nav = BottomTabNavigationProp<CitizenTabParamList, 'Home'>;
 
-const PREVENTIVE_CAMPAIGNS = [
-  {
-    id: 'c1',
-    title: 'Campaña contra el Dengue',
-    district: 'Callería',
-    text: 'Se reporta incremento de mosquitos. Lava y tapa bien los depósitos donde almacenas agua.',
-    icon: 'megaphone-outline',
-    type: 'Alerta',
-    color: colors.danger,
-  },
-  {
-    id: 'c2',
-    title: 'Vacunación de Control',
-    district: 'Ucayali Rural',
-    text: 'Agentes comunitarios visitarán comunidades nativas para aplicar dosis de refuerzo. Prepara tu carnet.',
-    icon: 'shield-outline',
-    type: 'Informativo',
-    color: colors.secondary,
-  },
-];
-
-const HEALTH_TIPS = [
-  { text: 'Usa mosquiteros en camas y cunas para evitar picaduras de zancudos durante la noche.' },
-  { text: 'Evita acumular llantas, baldes o chapas donde pueda empozarse el agua de lluvia.' },
-  { text: 'Hierve el agua o usa tabletas de cloro antes de consumirla para evitar infecciones (EDAs).' },
-];
-
 export function CitizenHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { reports } = useReports();
+  const { t } = useLanguage();
   const lastReport = reports[0];
+
+  const PREVENTIVE_CAMPAIGNS = [
+    {
+      id: 'c1',
+      title: t.home_campaign1_title,
+      district: 'Callería',
+      text: t.home_campaign1_text,
+      icon: 'megaphone-outline',
+      type: t.home_campaign_alert_type,
+      color: colors.danger,
+    },
+    {
+      id: 'c2',
+      title: t.home_campaign2_title,
+      district: 'Ucayali Rural',
+      text: t.home_campaign2_text,
+      icon: 'shield-outline',
+      type: t.home_campaign_info_type,
+      color: colors.secondary,
+    },
+  ];
+
+  const HEALTH_TIPS = [
+    { text: t.home_tip1 },
+    { text: t.home_tip2 },
+    { text: t.home_tip3 },
+  ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Hola 👋</Text>
-          <Text style={styles.subtitle}>Guardian Salud AI cuida de tu comunidad</Text>
+          <Text style={styles.title}>{t.home_greeting}</Text>
+          <Text style={styles.subtitle}>{t.home_subtitle}</Text>
         </View>
         <Ionicons name="notifications-outline" size={24} color={colors.primary} />
       </View>
@@ -57,45 +59,43 @@ export function CitizenHomeScreen() {
       <View style={styles.riskCard}>
         <View style={styles.riskHeader}>
           <View>
-            <Text style={styles.cardLabel}>Riesgo en tu distrito</Text>
+            <Text style={styles.cardLabel}>{t.home_district_risk_label}</Text>
             <Text style={styles.districtName}>Callería, Ucayali</Text>
           </View>
           <RiskBadge level="medio" />
         </View>
-        <Text style={styles.riskHint}>
-          Alerta moderada. Se detectaron ligeros incrementos de cuadros febriles en los últimos 7 días.
-        </Text>
+        <Text style={styles.riskHint}>{t.home_risk_hint}</Text>
       </View>
 
       {/* Quick Action Navigation Grid */}
       <View style={styles.actionsGrid}>
-        <Pressable 
-          style={[styles.actionButton, { borderColor: colors.primary }]} 
+        <Pressable
+          style={[styles.actionButton, { borderColor: colors.primary }]}
           onPress={() => navigation.navigate('ReportSymptoms')}
         >
           <View style={[styles.actionIconWrap, { backgroundColor: '#F0FDFA' }]}>
             <Ionicons name="clipboard-outline" size={24} color={colors.primary} />
           </View>
-          <Text style={styles.actionTitle}>Reportar Síntomas</Text>
-          <Text style={styles.actionDesc}>Alerta rápida para la IA</Text>
+          <Text style={styles.actionTitle}>{t.home_action_report_title}</Text>
+          <Text style={styles.actionDesc}>{t.home_action_report_desc}</Text>
         </Pressable>
 
-        <Pressable 
-          style={[styles.actionButton, { borderColor: colors.secondary }]} 
+        <Pressable
+          style={[styles.actionButton, { borderColor: colors.secondary }]}
           onPress={() => navigation.navigate('Scanner')}
         >
           <View style={[styles.actionIconWrap, { backgroundColor: '#EFF6FF' }]}>
             <Ionicons name="camera-outline" size={24} color={colors.secondary} />
           </View>
-          <Text style={styles.actionTitle}>Escanear con IA</Text>
-          <Text style={styles.actionDesc}>Detección por fotos</Text>
+          <Text style={styles.actionTitle}>{t.home_action_scanner_title}</Text>
+          <Text style={styles.actionDesc}>{t.home_action_scanner_desc}</Text>
         </Pressable>
       </View>
 
       {/* Last Report Status */}
       {lastReport && (
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Tu último reporte ({lastReport.date})</Text>
+          <Text style={styles.cardLabel}>{t.home_last_report_label(lastReport.date)}</Text>
           <View style={styles.reportRow}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.cardText} numberOfLines={1}>
@@ -108,8 +108,8 @@ export function CitizenHomeScreen() {
         </View>
       )}
 
-      {/* Active Preventive Campaigns from authorities */}
-      <Text style={styles.sectionLabel}>📢 Campañas de Prevención Activas</Text>
+      {/* Active Preventive Campaigns */}
+      <Text style={styles.sectionLabel}>{t.home_campaigns_section}</Text>
       {PREVENTIVE_CAMPAIGNS.map((camp) => (
         <View key={camp.id} style={styles.campaignCard}>
           <View style={styles.campaignHeader}>
@@ -122,12 +122,12 @@ export function CitizenHomeScreen() {
             </Text>
           </View>
           <Text style={styles.campaignText}>{camp.text}</Text>
-          <Text style={styles.campaignLocation}>📍 Dirigido a: {camp.district}</Text>
+          <Text style={styles.campaignLocation}>{t.home_campaign_directed(camp.district)}</Text>
         </View>
       ))}
 
       {/* Amazon Health Tips */}
-      <Text style={styles.sectionLabel}>💡 Consejos de Salud para la Selva</Text>
+      <Text style={styles.sectionLabel}>{t.home_tips_section}</Text>
       <View style={styles.tipsCard}>
         {HEALTH_TIPS.map((tip, idx) => (
           <View key={idx} style={styles.tipRow}>
@@ -146,12 +146,11 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary },
-  
-  riskCard: { 
-    borderRadius: 24, 
-    padding: 20, 
-    gap: 12, 
-    borderWidth: 1, 
+  riskCard: {
+    borderRadius: 24,
+    padding: 20,
+    gap: 12,
+    borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
@@ -159,15 +158,13 @@ const styles = StyleSheet.create({
   cardLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
   districtName: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginTop: 2 },
   riskHint: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
-
-  // Grid
   actionsGrid: { flexDirection: 'row', gap: 12 },
-  actionButton: { 
-    flex: 1, 
-    backgroundColor: colors.surface, 
-    borderRadius: 20, 
-    padding: 16, 
-    borderWidth: 1, 
+  actionButton: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
     gap: 6,
     elevation: 2,
     shadowColor: '#000',
@@ -178,13 +175,10 @@ const styles = StyleSheet.create({
   actionIconWrap: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   actionTitle: { fontSize: 14, fontWeight: '800', color: colors.textPrimary },
   actionDesc: { fontSize: 11, color: colors.textSecondary },
-
   card: { backgroundColor: colors.surface, borderRadius: 20, padding: 16, gap: 10, borderWidth: 1, borderColor: colors.border },
   reportRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardText: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   reportSub: { fontSize: 12, color: colors.textSecondary },
-
-  // Campaigns
   sectionLabel: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginTop: 8 },
   campaignCard: { backgroundColor: colors.surface, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: colors.border, gap: 10 },
   campaignHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -193,8 +187,6 @@ const styles = StyleSheet.create({
   campaignType: { fontSize: 10, fontWeight: '700', borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   campaignText: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
   campaignLocation: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
-
-  // Tips
   tipsCard: { backgroundColor: colors.surface, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: colors.border, gap: 12 },
   tipRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   tipText: { fontSize: 13, color: colors.textSecondary, flex: 1, lineHeight: 18 },

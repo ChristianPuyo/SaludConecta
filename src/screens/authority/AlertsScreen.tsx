@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { useLanguage } from '../../context/LanguageContext';
 import { HealthApiService } from '../../services/healthApi';
 import type { EpidemicAlert } from '../../data/mockData';
 import { RiskBadge } from '../../components/RiskBadge';
 import { colors } from '../../theme/colors';
+import { useEffect, useState } from 'react';
 
 export function AlertsScreen() {
   const [alerts, setAlerts] = useState<EpidemicAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     (async () => {
@@ -50,10 +53,8 @@ export function AlertsScreen() {
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text style={styles.title}>Alertas generadas por IA</Text>
-          <Text style={styles.subtitle}>
-            Patrones detectados automáticamente a partir de los reportes ciudadanos
-          </Text>
+          <Text style={styles.title}>{t.alerts_title}</Text>
+          <Text style={styles.subtitle}>{t.alerts_subtitle}</Text>
         </View>
       }
     />
@@ -67,7 +68,15 @@ const styles = StyleSheet.create({
   header: { marginBottom: 12, gap: 4 },
   title: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
   subtitle: { fontSize: 13, color: colors.textSecondary },
-  card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 12, gap: 6 },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 12,
+    gap: 6,
+  },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, flex: 1 },
   cardDistrict: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },

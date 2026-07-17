@@ -1,380 +1,639 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable, Alert } from 'react-native';
-import type { DistrictRisk } from '../../data/mockData';
-import { RiskBadge, type RiskLevel } from '../../components/RiskBadge';
-import { colors } from '../../theme/colors';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Alert,
+  Animated,
+  Dimensions,
+  Platform,
+} from 'react-native';
+import MapView, { MapType } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type DiseaseType = 'Dengue' | 'Malaria' | 'Leptospirosis' | 'EDA' | 'IRA';
+import {
+  UCAYALI_CENTER,
+  DISTRICTS_GEO,
+  DISEASE_DATA,
+  DISEASES,
+  DISEASE_ICONS,
+  VECTOR_FOCI,
+  type DiseaseType,
+} from '../../data/mapData';
+import { MapCacheService, type MapCacheStatus } from '../../services/mapCacheService';
+import { colors } from '../../theme/colors';
+import { useLanguage } from '../../context/LanguageContext';
+import { RiskBadge } from '../../components/RiskBadge';
+import { HeatOverlay } from '../../components/map/HeatOverlay';
+import { DistrictMarker } from '../../components/map/DistrictMarker';
+import { MapLegend } from '../../components/map/MapLegend';
+import { OfflineStatusBanner } from '../../components/map/OfflineStatusBanner';
+import { DownloadMapModal } from '../../components/map/DownloadMapModal';
 
-const DISEASES: DiseaseType[] = ['Dengue', 'Malaria', 'Leptospirosis', 'EDA', 'IRA'];
+type MapLayer = 'cases' | 'vectors' | 'prediction';
 
-// Simulated data adjustment factors based on disease type
-const DISEASE_DATA: Record<DiseaseType, Record<string, { cases: number; risk: RiskLevel }>> = {
-  Dengue: {
-    'Callería': { cases: 42, risk: 'alto' },
-    'Yarinacocha': { cases: 21, risk: 'medio' },
-    'Manantay': { cases: 18, risk: 'medio' },
-    'Campoverde': { cases: 5, risk: 'bajo' },
-    'Nueva Requena': { cases: 2, risk: 'bajo' },
-  },
-  Malaria: {
-    'Callería': { cases: 15, risk: 'medio' },
-    'Yarinacocha': { cases: 35, risk: 'alto' },
-    'Manantay': { cases: 9, risk: 'bajo' },
-    'Campoverde': { cases: 18, risk: 'medio' },
-    'Nueva Requena': { cases: 27, risk: 'alto' },
-  },
-  Leptospirosis: {
-    'Callería': { cases: 8, risk: 'bajo' },
-    'Yarinacocha': { cases: 6, risk: 'bajo' },
-    'Manantay': { cases: 29, risk: 'alto' },
-    'Campoverde': { cases: 12, risk: 'medio' },
-    'Nueva Requena': { cases: 4, risk: 'bajo' },
-  },
-  EDA: {
-    'Callería': { cases: 38, risk: 'alto' },
-    'Yarinacocha': { cases: 22, risk: 'medio' },
-    'Manantay': { cases: 31, risk: 'alto' },
-    'Campoverde': { cases: 14, risk: 'medio' },
-    'Nueva Requena': { cases: 8, risk: 'bajo' },
-  },
-  IRA: {
-    'Callería': { cases: 45, risk: 'alto' },
-    'Yarinacocha': { cases: 48, risk: 'alto' },
-    'Manantay': { cases: 26, risk: 'medio' },
-    'Campoverde': { cases: 19, risk: 'medio' },
-    'Nueva Requena': { cases: 11, risk: 'bajo' },
-  },
-};
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const PANEL_COLLAPSED_HEIGHT = 180;
+const PANEL_EXPANDED_HEIGHT = 420;
 
-// Spatial positions of hotspots for the mock map of Ucayali
-const DISTRICT_POSITIONS: Record<string, { top: any; left: any }> = {
-  'Callería': { top: '48%', left: '52%' },
-  'Yarinacocha': { top: '30%', left: '42%' },
-  'Manantay': { top: '65%', left: '60%' },
-  'Campoverde': { top: '55%', left: '25%' },
-  'Nueva Requena': { top: '22%', left: '15%' },
-};
+const WEEKS_LABELS = ['S-5', 'S-4', 'S-3', 'S-2', 'S-1', 'Hoy'];
+
+function getRiskColor(risk: string): string {
+  if (risk === 'alto') return colors.danger;
+  if (risk === 'medio') return colors.warning;
+  return colors.success;
+}
+
+function getTrendIcon(trend: string): { name: string; color: string } {
+  if (trend === 'up') return { name: 'trending-up', color: colors.danger };
+  if (trend === 'down') return { name: 'trending-down', color: colors.success };
+  return { name: 'remove', color: colors.textSecondary };
+}
+
+// Mini sparkline chart using pure React Native Views
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const barWidth = 28;
+
+  return (
+    <View style={sparkStyles.container}>
+      {data.map((val, i) => {
+        const heightPct = ((val - min) / range) * 100;
+        const isLast = i === data.length - 1;
+        return (
+          <View key={i} style={sparkStyles.barWrapper}>
+            <View
+              style={[
+                sparkStyles.bar,
+                {
+                  height: Math.max(6, (heightPct / 100) * 52),
+                  backgroundColor: isLast ? color : `${color}55`,
+                  width: barWidth,
+                },
+              ]}
+            />
+            <Text style={sparkStyles.barLabel}>{WEEKS_LABELS[i]}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+const sparkStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 4,
+    height: 72,
+    paddingTop: 8,
+  },
+  barWrapper: { alignItems: 'center', gap: 4 },
+  bar: { borderRadius: 4, minHeight: 6 },
+  barLabel: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
+});
 
 export function RiskMapScreen() {
+  const insets = useSafeAreaInsets();
+  const mapRef = useRef<MapView>(null);
+  
+  // [i18n & FIX] Refactorización Completa del Mapa
+  // 1. Se integró el hook useLanguage para hacer que TODOS los textos del mapa, leyendas
+  //    y métricas sean reactivos al cambio de idioma (sin necesidad de recargar).
+  // 2. Todos los strings quemados en la UI ahora consumen claves de `t.*`
+  const { t } = useLanguage();
+
+  const MAP_LAYERS: { id: MapLayer; label: string; icon: string }[] = [
+    { id: 'cases', label: t.map_layer_cases, icon: 'pulse-outline' },
+    { id: 'vectors', label: t.map_layer_vectors, icon: 'bug-outline' },
+    { id: 'prediction', label: t.map_layer_prediction, icon: 'analytics-outline' },
+  ];
+
   const [selectedDisease, setSelectedDisease] = useState<DiseaseType>('Dengue');
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('Callería');
-  const [loading, setLoading] = useState(false);
+  const [selectedLayer, setSelectedLayer] = useState<MapLayer>('cases');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('calleria');
+  const [mapType, setMapType] = useState<MapType>('standard');
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [cacheStatus, setCacheStatus] = useState<MapCacheStatus>({
+    isDownloaded: false,
+    downloadedAt: null,
+    regionName: 'Coronel Portillo, Ucayali',
+    estimatedSizeMB: 42,
+    tileCount: 8400,
+  });
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
-  const activeData = DISEASE_DATA[selectedDisease];
-  const activeDistrictInfo = activeData[selectedDistrict];
+  const panelAnim = useRef(new Animated.Value(PANEL_COLLAPSED_HEIGHT)).current;
 
-  const handleLaunchCampaign = () => {
+  // ── Load cache status on mount ──────────────────────────────────────────
+  useEffect(() => {
+    MapCacheService.getStatus().then(setCacheStatus);
+  }, []);
+
+  // ── Animate bottom panel ─────────────────────────────────────────────────
+  useEffect(() => {
+    Animated.spring(panelAnim, {
+      toValue: isPanelExpanded ? PANEL_EXPANDED_HEIGHT : PANEL_COLLAPSED_HEIGHT,
+      useNativeDriver: false,
+      tension: 60,
+      friction: 10,
+    }).start();
+  }, [isPanelExpanded, panelAnim]);
+
+  // ── Derived data ─────────────────────────────────────────────────────────
+  const activeDisease = DISEASE_DATA[selectedDisease];
+  const selectedDistrict = DISTRICTS_GEO.find((d) => d.id === selectedDistrictId)!;
+  const selectedEpiData = activeDisease[selectedDistrict.name];
+  const trendIcon = getTrendIcon(selectedEpiData.trend);
+  const riskColor = getRiskColor(selectedEpiData.risk);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const handleMarkerPress = useCallback(
+    (districtId: string) => {
+      setSelectedDistrictId(districtId);
+      setIsPanelExpanded(true);
+      const geo = DISTRICTS_GEO.find((d) => d.id === districtId);
+      if (geo && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: geo.latitude - 0.08,
+            longitude: geo.longitude,
+            latitudeDelta: 0.5,
+            longitudeDelta: 0.5,
+          },
+          600
+        );
+      }
+    },
+    []
+  );
+
+  const handleRecenter = () => {
+    mapRef.current?.animateToRegion(UCAYALI_CENTER, 700);
+    setIsPanelExpanded(false);
+  };
+
+  const handleToggleMapType = () => {
+    setMapType((prev) => (prev === 'standard' ? 'satellite' : 'standard'));
+  };
+
+  const handleCampaign = () => {
     Alert.alert(
-      'Campañas Inteligentes con IA',
-      `¿Deseas enviar una campaña educativa preventiva sobre ${selectedDisease} dirigida a todos los ciudadanos y agentes comunitarios del distrito de ${selectedDistrict}?\n\nLa IA adaptará el mensaje en base a la sintomatología actual registrada en la zona.`,
+      t.alert_campaign_title,
+      t.alert_campaign_body(selectedDisease, selectedDistrict.name),
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sí, Enviar Alerta', 
-          onPress: () => {
+        { text: t.cancel, style: 'cancel' },
+        {
+          text: t.yes,
+          onPress: () =>
             Alert.alert(
-              'Alerta Enviada',
-              `Campaña preventiva de ${selectedDisease} iniciada con IA para ${selectedDistrict}. Se ha enviado una notificación de alerta a 3,420 dispositivos móviles en la zona.`
-            );
-          }
-        }
+              t.alert_campaign_sent_title,
+              t.alert_campaign_sent_body(
+                selectedDisease,
+                selectedDistrict.name,
+                selectedDistrict.population.toLocaleString()
+              )
+            ),
+        },
       ]
     );
   };
 
-  const getRiskColor = (level: RiskLevel) => {
-    if (level === 'alto') return colors.danger;
-    if (level === 'medio') return colors.warning;
-    return colors.success;
+  const refreshCacheStatus = async () => {
+    const status = await MapCacheService.getStatus();
+    setCacheStatus(status);
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Mapas Inteligentes</Text>
-      <Text style={styles.subtitle}>
-        Vigilancia geoespacial de Ucayali. Selecciona una enfermedad y haz clic en los hotspots para analizar y actuar.
-      </Text>
+    <View style={styles.root}>
+      {/* ── MAP ── */}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={UCAYALI_CENTER}
+        mapType={mapType}
+        showsUserLocation
+        showsCompass={false}
+        showsScale
+        rotateEnabled={false}
+      >
+        {/* Heat overlays — only for cases layer */}
+        {selectedLayer === 'cases' &&
+          DISTRICTS_GEO.map((district) => {
+            const epi = activeDisease[district.name];
+            return epi ? (
+              <HeatOverlay key={district.id} district={district} epiData={epi} />
+            ) : null;
+          })}
 
-      {/* Disease selector chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.diseaseFilterScroll} contentContainerStyle={styles.diseaseFilterContainer}>
-        {DISEASES.map((disease) => {
-          const isActive = selectedDisease === disease;
-          return (
-            <Pressable
-              key={disease}
-              onPress={() => setSelectedDisease(disease)}
-              style={[styles.diseaseChip, isActive && styles.diseaseChipActive]}
-            >
-              <Text style={[styles.diseaseChipText, isActive && styles.diseaseChipTextActive]}>
-                {disease}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+        {/* District markers */}
+        {selectedLayer !== 'prediction' &&
+          DISTRICTS_GEO.map((district) => {
+            const epi = activeDisease[district.name];
+            return epi ? (
+              <DistrictMarker
+                key={district.id}
+                district={district}
+                epiData={epi}
+                isSelected={selectedDistrictId === district.id}
+                onPress={() => handleMarkerPress(district.id)}
+              />
+            ) : null;
+          })}
 
-      {/* Interactive Mock Map Component */}
-      <View style={styles.mapContainer}>
-        <Text style={styles.mapWatermark}>UCAYALI · GEO-SATELITAL</Text>
-        
-        {/* Render simulated river line */}
-        <View style={styles.riverLine1} />
-        <View style={styles.riverLine2} />
-        
-        {/* Render Hotspot markers */}
-        {Object.entries(activeData).map(([distName, info]) => {
-          const isHighlighted = selectedDistrict === distName;
-          const pos = DISTRICT_POSITIONS[distName];
-          const dotColor = getRiskColor(info.risk);
-          
-          return (
-            <Pressable
-              key={distName}
-              style={[
-                styles.hotspotTouch,
-                { top: pos.top, left: pos.left }
-              ]}
-              onPress={() => setSelectedDistrict(distName)}
-            >
-              <View style={[
-                styles.hotspotPulse,
-                { backgroundColor: dotColor, borderColor: dotColor },
-                isHighlighted && styles.hotspotPulseActive
-              ]} />
-              <View style={[styles.hotspotCore, { backgroundColor: dotColor }]} />
-              <Text style={[styles.hotspotLabel, isHighlighted && styles.hotspotLabelActive]}>
-                {distName}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {/* Vector foci markers — only for vectors layer */}
+        {selectedLayer === 'vectors' &&
+          VECTOR_FOCI.map((focus) => {
+            const focusIcons: Record<string, string> = {
+              agua_estancada: '💧',
+              basural: '🗑️',
+              desague: '🔄',
+              rio: '🌊',
+            };
+            return (
+              <DistrictMarker
+                key={focus.id}
+                district={{
+                  id: focus.id,
+                  name: focusIcons[focus.type] + ' ' + focus.description.substring(0, 16) + '…',
+                  latitude: focus.latitude,
+                  longitude: focus.longitude,
+                  population: 0,
+                  radiusKm: 3,
+                }}
+                epiData={{
+                  cases: 0,
+                  risk: 'medio',
+                  trend: 'stable',
+                  weeklyHistory: [],
+                  lastUpdate: focus.reportedAt,
+                  description: focus.description,
+                }}
+                isSelected={false}
+                onPress={() => {}}
+              />
+            );
+          })}
+      </MapView>
+
+      {/* ── TOP CONTROLS ── */}
+      <View style={[styles.topControls, { top: insets.top + 8 }]}>
+        {/* Disease filter chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.diseaseChips}
+        >
+          {DISEASES.map((disease) => {
+            const isActive = selectedDisease === disease;
+            return (
+              <Pressable
+                key={disease}
+                onPress={() => setSelectedDisease(disease)}
+                style={[styles.chip, isActive && styles.chipActive]}
+              >
+                <Text style={styles.chipIcon}>{DISEASE_ICONS[disease]}</Text>
+                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                  {disease}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Offline status banner */}
+        <OfflineStatusBanner cacheStatus={cacheStatus} />
       </View>
 
-      {/* Selected District Control Card */}
-      <View style={styles.actionCard}>
-        <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.cardTitle}>{selectedDistrict}</Text>
-            <Text style={styles.cardSubtitle}>
-              Monitoreo activo para: <Text style={{fontWeight: '700'}}>{selectedDisease}</Text>
-            </Text>
-          </View>
-          <RiskBadge level={activeDistrictInfo.risk} />
-        </View>
-
-        <View style={styles.metricsRow}>
-          <View style={styles.metricItem}>
-            <Text style={styles.metricNumber}>{activeDistrictInfo.cases}</Text>
-            <Text style={styles.metricLabel}>Casos Activos</Text>
-          </View>
-          <View style={styles.metricDivider} />
-          <View style={styles.metricItem}>
-            <Text style={[styles.metricNumber, { color: getRiskColor(activeDistrictInfo.risk) }]}>
-              {activeDistrictInfo.risk.toUpperCase()}
-            </Text>
-            <Text style={styles.metricLabel}>Nivel de Alerta</Text>
-          </View>
-        </View>
-
-        <Pressable style={styles.campaignButton} onPress={handleLaunchCampaign}>
-          <Ionicons name="megaphone-outline" size={18} color="#fff" />
-          <Text style={styles.campaignButtonText}>Enviar Campaña Preventiva IA</Text>
+      {/* ── RIGHT SIDE BUTTONS ── */}
+      <View style={[styles.sideButtons, { top: insets.top + 90 }]}>
+        <Pressable style={styles.iconBtn} onPress={handleToggleMapType}>
+          <Ionicons
+            name={mapType === 'standard' ? 'planet-outline' : 'map-outline'}
+            size={20}
+            color={colors.textPrimary}
+          />
+        </Pressable>
+        <Pressable style={styles.iconBtn} onPress={handleRecenter}>
+          <Ionicons name="locate-outline" size={20} color={colors.textPrimary} />
+        </Pressable>
+        <Pressable
+          style={[styles.iconBtn, cacheStatus.isDownloaded && styles.iconBtnActive]}
+          onPress={() => setShowDownloadModal(true)}
+        >
+          <Ionicons
+            name={cacheStatus.isDownloaded ? 'cloud-done-outline' : 'cloud-download-outline'}
+            size={20}
+            color={cacheStatus.isDownloaded ? colors.primary : colors.textPrimary}
+          />
         </Pressable>
       </View>
 
-      {/* District List Card */}
-      <Text style={styles.sectionLabel}>Resumen General ({selectedDisease})</Text>
-      <View style={styles.listCard}>
-        {Object.entries(activeData).map(([distName, info]) => {
-          const isSelected = selectedDistrict === distName;
+      {/* ── LAYER SELECTOR ── */}
+      <View style={styles.layerSelector}>
+        {MAP_LAYERS.map((layer) => {
+          const isActive = selectedLayer === layer.id;
           return (
             <Pressable
-              key={distName}
-              onPress={() => setSelectedDistrict(distName)}
-              style={[styles.districtListItem, isSelected && styles.districtListItemSelected]}
+              key={layer.id}
+              onPress={() => setSelectedLayer(layer.id)}
+              style={[styles.layerBtn, isActive && styles.layerBtnActive]}
             >
-              <View style={styles.listItemLeft}>
-                <Ionicons 
-                  name="pin-outline" 
-                  size={18} 
-                  color={isSelected ? colors.primary : colors.textSecondary} 
-                />
-                <Text style={[styles.listItemName, isSelected && styles.listItemNameSelected]}>
-                  {distName}
-                </Text>
-              </View>
-              <View style={styles.listItemRight}>
-                <Text style={styles.listItemCases}>{info.cases} casos</Text>
-                <RiskBadge level={info.risk} />
-              </View>
+              <Ionicons
+                name={layer.icon as any}
+                size={14}
+                color={isActive ? '#fff' : colors.textSecondary}
+              />
+              <Text style={[styles.layerText, isActive && styles.layerTextActive]}>
+                {layer.label}
+              </Text>
             </Pressable>
           );
         })}
       </View>
-    </ScrollView>
+
+      {/* ── MAP LEGEND ── */}
+      <MapLegend />
+
+      {/* ── BOTTOM DETAIL PANEL ── */}
+      <Animated.View style={[styles.panel, { height: panelAnim }]}>
+        {/* Panel handle */}
+        <Pressable
+          style={styles.panelHandle}
+          onPress={() => setIsPanelExpanded((prev) => !prev)}
+        >
+          <View style={styles.handleBar} />
+        </Pressable>
+
+        {/* Panel header */}
+        <View style={styles.panelHeader}>
+          <View style={styles.panelTitleRow}>
+            <Text style={styles.panelTitle}>{selectedDistrict.name}</Text>
+            <RiskBadge level={selectedEpiData.risk} />
+          </View>
+          <Text style={styles.panelSubtitle}>
+            {DISEASE_ICONS[selectedDisease]} {selectedDisease} · {t.map_updated(selectedEpiData.lastUpdate)}
+          </Text>
+        </View>
+
+        {/* Metrics row */}
+        <View style={styles.metricsRow}>
+          <View style={styles.metricCard}>
+            <Text style={[styles.metricValue, { color: riskColor }]}>
+              {selectedEpiData.cases}
+            </Text>
+            <Text style={styles.metricLabel}>{t.map_active_cases}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metricCard}>
+            <View style={styles.trendRow}>
+              <Ionicons name={trendIcon.name as any} size={18} color={trendIcon.color} />
+              <Text style={[styles.metricValue, { color: trendIcon.color }]}>
+                {selectedEpiData.trend === 'up'
+                  ? t.map_trend_up
+                  : selectedEpiData.trend === 'down'
+                  ? t.map_trend_down
+                  : t.map_trend_stable}
+              </Text>
+            </View>
+            <Text style={styles.metricLabel}>{t.map_trend}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {(selectedDistrict.population / 1000).toFixed(0)}K
+            </Text>
+            <Text style={styles.metricLabel}>{t.map_population}</Text>
+          </View>
+        </View>
+
+        {/* Expanded content */}
+        {isPanelExpanded && (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.expandedContent}
+          >
+            {/* Description */}
+            <View style={styles.descriptionCard}>
+              <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
+              <Text style={styles.descriptionText}>{selectedEpiData.description}</Text>
+            </View>
+
+            {/* Sparkline chart */}
+            <View style={styles.chartSection}>
+              <Text style={styles.chartTitle}>{t.map_chart_title}</Text>
+              <Sparkline data={selectedEpiData.weeklyHistory} color={riskColor} />
+              <View style={styles.chartFooter}>
+                <Text style={styles.chartFooterText}>
+                  {t.map_chart_peak(Math.max(...selectedEpiData.weeklyHistory))}
+                </Text>
+                <Text style={styles.chartFooterText}>
+                  {t.map_chart_min(Math.min(...selectedEpiData.weeklyHistory))}
+                </Text>
+              </View>
+            </View>
+
+            {/* Campaign button */}
+            <Pressable style={styles.campaignBtn} onPress={handleCampaign}>
+              <Ionicons name="megaphone-outline" size={18} color="#fff" />
+              <Text style={styles.campaignBtnText}>{t.map_btn_campaign}</Text>
+            </Pressable>
+          </ScrollView>
+        )}
+
+        {/* Collapsed quick-action */}
+        {!isPanelExpanded && (
+          <Pressable style={styles.expandHint} onPress={() => setIsPanelExpanded(true)}>
+            <Text style={styles.expandHintText}>{t.map_btn_expand}</Text>
+            <Ionicons name="chevron-up" size={14} color={colors.primary} />
+          </Pressable>
+        )}
+      </Animated.View>
+
+      {/* ── DOWNLOAD MODAL ── */}
+      <DownloadMapModal
+        visible={showDownloadModal}
+        cacheStatus={cacheStatus}
+        onClose={() => setShowDownloadModal(false)}
+        onDownloadComplete={refreshCacheStatus}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, gap: 14 },
-  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 4, lineHeight: 18 },
-  
-  // Disease filters
-  diseaseFilterScroll: { marginHorizontal: -20, marginBottom: 2 },
-  diseaseFilterContainer: { paddingHorizontal: 20, gap: 8, flexDirection: 'row' },
-  diseaseChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  diseaseChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  diseaseChipText: { color: colors.textSecondary, fontWeight: '600', fontSize: 13 },
-  diseaseChipTextActive: { color: '#fff' },
+  root: { flex: 1, backgroundColor: '#000' },
 
-  // Visual Map styles
-  mapContainer: {
-    height: 220,
-    backgroundColor: '#0F172A', // Slate 900 for dark satellite feel
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#334155',
-    overflow: 'hidden',
-    position: 'relative',
-    marginVertical: 4,
-  },
-  mapWatermark: {
-    position: 'absolute',
-    top: 14,
-    left: 14,
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#475569',
-    letterSpacing: 2,
-  },
-  riverLine1: {
-    position: 'absolute',
-    width: '120%',
-    height: 4,
-    backgroundColor: '#1E293B',
-    transform: [{ rotate: '-25deg' }],
-    top: '40%',
-    opacity: 0.7,
-  },
-  riverLine2: {
-    position: 'absolute',
-    width: '120%',
-    height: 3,
-    backgroundColor: '#0EA5E9', // Glowing blue river representation
-    transform: [{ rotate: '-22deg' }],
-    top: '39%',
-    opacity: 0.4,
-  },
+  // Map
+  map: { flex: 1 },
 
-  // Map Hotspots
-  hotspotTouch: {
+  // Top controls
+  topControls: {
     position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ translateX: -30 }, { translateY: -30 }], // Center offset
-    width: 60,
-    height: 60,
-  },
-  hotspotCore: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  hotspotPulse: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    opacity: 0.3,
-  },
-  hotspotPulseActive: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    opacity: 0.5,
-    borderWidth: 1,
-  },
-  hotspotLabel: {
-    color: '#94A3B8',
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 4,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 4,
-  },
-  hotspotLabelActive: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-
-  // Action card
-  actionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  cardTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
-  cardSubtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  
-  metricsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  metricItem: { flex: 1, alignItems: 'center', gap: 2 },
-  metricNumber: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  metricLabel: { fontSize: 11, color: colors.textSecondary, fontWeight: '600' },
-  metricDivider: { width: 1, height: 35, backgroundColor: colors.border },
-
-  campaignButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    left: 0,
+    right: 0,
+    paddingHorizontal: 14,
     gap: 8,
   },
-  campaignButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  // List card
-  sectionLabel: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 4 },
-  listCard: { backgroundColor: colors.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-  districtListItem: {
+  diseaseChips: {
+    gap: 7,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+  },
+  chip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    gap: 5,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
-  districtListItemSelected: {
+  chipActive: { backgroundColor: colors.primary },
+  chipIcon: { fontSize: 14 },
+  chipText: { fontSize: 12, fontWeight: '700', color: colors.textPrimary },
+  chipTextActive: { color: '#fff' },
+
+  // Side buttons
+  sideButtons: {
+    position: 'absolute',
+    right: 14,
+    gap: 8,
+  },
+  iconBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  iconBtnActive: { backgroundColor: '#F0FDF9', borderWidth: 1.5, borderColor: colors.primary },
+
+  // Layer selector
+  layerSelector: {
+    position: 'absolute',
+    bottom: PANEL_COLLAPSED_HEIGHT + 12,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
+    padding: 4,
+    gap: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  layerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+  },
+  layerBtnActive: { backgroundColor: colors.primary },
+  layerText: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
+  layerTextActive: { color: '#fff' },
+
+  // Bottom panel
+  panel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+  },
+  panelHandle: { alignItems: 'center', paddingVertical: 10 },
+  handleBar: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#CBD5E1',
+  },
+  panelHeader: { gap: 4, marginBottom: 12 },
+  panelTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  panelTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
+  panelSubtitle: { fontSize: 12, color: colors.textSecondary, fontWeight: '500' },
+
+  // Metrics
+  metricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 4,
   },
-  listItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  listItemName: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
-  listItemNameSelected: { color: colors.primary, fontWeight: '700' },
-  listItemRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  listItemCases: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+  metricCard: { flex: 1, alignItems: 'center', gap: 3 },
+  metricValue: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  metricLabel: { fontSize: 10, color: colors.textSecondary, fontWeight: '600', textAlign: 'center' },
+  metricDivider: { width: 1, height: 34, backgroundColor: colors.border },
+  trendRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+
+  // Expanded content
+  expandedContent: { gap: 14, paddingBottom: 16 },
+  descriptionCard: {
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#F0FDF9',
+    borderRadius: 14,
+    padding: 12,
+    alignItems: 'flex-start',
+  },
+  descriptionText: { flex: 1, fontSize: 13, color: colors.textSecondary, lineHeight: 19 },
+
+  // Chart
+  chartSection: { gap: 6 },
+  chartTitle: { fontSize: 13, fontWeight: '700', color: colors.textPrimary },
+  chartFooter: { flexDirection: 'row', justifyContent: 'space-between' },
+  chartFooterText: { fontSize: 11, color: colors.textSecondary, fontWeight: '600' },
+
+  // Campaign
+  campaignBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  campaignBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  // Expand hint
+  expandHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  expandHintText: { fontSize: 13, color: colors.primary, fontWeight: '700' },
 });

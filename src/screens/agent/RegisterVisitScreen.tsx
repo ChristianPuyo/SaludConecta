@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useVisits } from '../../context/VisitsContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
@@ -11,6 +12,7 @@ type Nav = BottomTabNavigationProp<AgentTabParamList, 'RegisterVisit'>;
 export function RegisterVisitScreen() {
   const navigation = useNavigation<Nav>();
   const { addVisit } = useVisits();
+  const { t } = useLanguage();
   const [patientName, setPatientName] = useState('');
   const [community, setCommunity] = useState('');
   const [bloodPressure, setBloodPressure] = useState('');
@@ -23,21 +25,21 @@ export function RegisterVisitScreen() {
 
   const handleSave = () => {
     if (!patientName || !community) {
-      Alert.alert('Completa al menos el nombre y la comunidad');
+      Alert.alert(t.alert_visit_validation);
       return;
     }
-    addVisit({ 
-      patientName, 
-      community, 
-      bloodPressure, 
-      glucose, 
-      temperature, 
-      weight, 
+    addVisit({
+      patientName,
+      community,
+      bloodPressure,
+      glucose,
+      temperature,
+      weight,
       height,
       isPregnant,
-      vaccinesUpToDate
+      vaccinesUpToDate,
     });
-    Alert.alert('Guardado localmente', 'La visita se sincronizará cuando haya conexión.');
+    Alert.alert(t.alert_visit_saved_title, t.alert_visit_saved_body);
     setPatientName('');
     setCommunity('');
     setBloodPressure('');
@@ -50,19 +52,21 @@ export function RegisterVisitScreen() {
     navigation.navigate('Sync');
   };
 
+  const fields = [
+    { label: t.visit_field_name, value: patientName, onChange: setPatientName },
+    { label: t.visit_field_community, value: community, onChange: setCommunity },
+    { label: t.visit_field_bp, value: bloodPressure, onChange: setBloodPressure },
+    { label: t.visit_field_glucose, value: glucose, onChange: setGlucose },
+    { label: t.visit_field_temperature, value: temperature, onChange: setTemperature },
+    { label: t.visit_field_weight, value: weight, onChange: setWeight },
+    { label: t.visit_field_height, value: height, onChange: setHeight },
+  ];
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Registrar visita</Text>
+      <Text style={styles.title}>{t.visit_title}</Text>
 
-      {[
-        { label: 'Nombre del paciente', value: patientName, onChange: setPatientName },
-        { label: 'Comunidad', value: community, onChange: setCommunity },
-        { label: 'Presión arterial', value: bloodPressure, onChange: setBloodPressure },
-        { label: 'Glucosa', value: glucose, onChange: setGlucose },
-        { label: 'Temperatura (°C)', value: temperature, onChange: setTemperature },
-        { label: 'Peso (kg)', value: weight, onChange: setWeight },
-        { label: 'Talla (cm)', value: height, onChange: setHeight },
-      ].map((field) => (
+      {fields.map((field) => (
         <View key={field.label} style={styles.fieldGroup}>
           <Text style={styles.label}>{field.label}</Text>
           <TextInput
@@ -76,44 +80,44 @@ export function RegisterVisitScreen() {
 
       <View style={styles.toggleRow}>
         <View style={styles.toggleField}>
-          <Text style={styles.label}>¿Es gestante?</Text>
+          <Text style={styles.label}>{t.visit_field_pregnant}</Text>
           <View style={styles.pillContainer}>
             <Pressable
               style={[styles.pillButton, isPregnant && styles.pillActive]}
               onPress={() => setIsPregnant(true)}
             >
-              <Text style={[styles.pillText, isPregnant && styles.pillTextActive]}>Sí</Text>
+              <Text style={[styles.pillText, isPregnant && styles.pillTextActive]}>{t.yes}</Text>
             </Pressable>
             <Pressable
               style={[styles.pillButton, !isPregnant && styles.pillActive]}
               onPress={() => setIsPregnant(false)}
             >
-              <Text style={[styles.pillText, !isPregnant && styles.pillTextActive]}>No</Text>
+              <Text style={[styles.pillText, !isPregnant && styles.pillTextActive]}>{t.no}</Text>
             </Pressable>
           </View>
         </View>
 
         <View style={styles.toggleField}>
-          <Text style={styles.label}>¿Vacunas al día?</Text>
+          <Text style={styles.label}>{t.visit_field_vaccines}</Text>
           <View style={styles.pillContainer}>
             <Pressable
               style={[styles.pillButton, vaccinesUpToDate && styles.pillActive]}
               onPress={() => setVaccinesUpToDate(true)}
             >
-              <Text style={[styles.pillText, vaccinesUpToDate && styles.pillTextActive]}>Sí</Text>
+              <Text style={[styles.pillText, vaccinesUpToDate && styles.pillTextActive]}>{t.yes}</Text>
             </Pressable>
             <Pressable
               style={[styles.pillButton, !vaccinesUpToDate && styles.pillActive]}
               onPress={() => setVaccinesUpToDate(false)}
             >
-              <Text style={[styles.pillText, !vaccinesUpToDate && styles.pillTextActive]}>No</Text>
+              <Text style={[styles.pillText, !vaccinesUpToDate && styles.pillTextActive]}>{t.no}</Text>
             </Pressable>
           </View>
         </View>
       </View>
 
       <Pressable style={styles.primaryButton} onPress={handleSave}>
-        <Text style={styles.primaryButtonText}>Guardar visita localmente</Text>
+        <Text style={styles.primaryButtonText}>{t.visit_save_btn}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -136,11 +140,30 @@ const styles = StyleSheet.create({
   },
   toggleRow: { flexDirection: 'row', gap: 16, marginBottom: 16, marginTop: 4 },
   toggleField: { flex: 1, gap: 4 },
-  pillContainer: { flexDirection: 'row', gap: 6, backgroundColor: '#E2E8F0', padding: 3, borderRadius: 12 },
+  pillContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: '#E2E8F0',
+    padding: 3,
+    borderRadius: 12,
+  },
   pillButton: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 9, backgroundColor: 'transparent' },
-  pillActive: { backgroundColor: colors.surface, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
+  pillActive: {
+    backgroundColor: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
   pillText: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
   pillTextActive: { color: colors.primary },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 12,
+  },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
