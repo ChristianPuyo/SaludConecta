@@ -10,6 +10,9 @@ export interface CommunityVisit {
   temperature: string;
   weight: string;
   height: string;
+  // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+  bmi?: number;
+  // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
   synced: boolean;
 }
 

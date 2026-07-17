@@ -4,14 +4,48 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useVisits } from '../../context/VisitsContext';
+// ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+import { useToast } from '../../components/Toast';
+// ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
 import { colors, shadows } from '../../theme/colors';
 import type { AgentTabParamList } from '../../navigation/AgentNavigator';
 
 type Nav = BottomTabNavigationProp<AgentTabParamList, 'RegisterVisit'>;
 
+// ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+type BmiCategory = 'bajo' | 'normal' | 'sobrepeso' | 'obesidad';
+
+const BMI_CATEGORIES: Record<BmiCategory, { label: string; range: string; color: string; bg: string }> = {
+  bajo: { label: 'Bajo peso', range: '< 18.5', color: colors.warningDark, bg: colors.warningLight },
+  normal: { label: 'Normal', range: '18.5 - 24.9', color: colors.successDark, bg: colors.successLight },
+  sobrepeso: { label: 'Sobrepeso', range: '25 - 29.9', color: colors.warningDark, bg: colors.warningLight },
+  obesidad: { label: 'Obesidad', range: '\u2265 30', color: colors.dangerDark, bg: colors.dangerLight },
+};
+
+function calculateBmi(weightKg: string, heightCm: string): { bmi: number; category: BmiCategory } | null {
+  const w = parseFloat(weightKg);
+  const h = parseFloat(heightCm);
+  if (!w || !h || w <= 0 || h <= 0) return null;
+  const heightM = h / 100;
+  const bmi = w / (heightM * heightM);
+  const rounded = Math.round(bmi * 10) / 10;
+
+  let category: BmiCategory;
+  if (rounded < 18.5) category = 'bajo';
+  else if (rounded < 25) category = 'normal';
+  else if (rounded < 30) category = 'sobrepeso';
+  else category = 'obesidad';
+
+  return { bmi: rounded, category };
+}
+// ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
+
 export function RegisterVisitScreen() {
   const navigation = useNavigation<Nav>();
   const { addVisit } = useVisits();
+  // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+  const { showToast } = useToast();
+  // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
   const [patientName, setPatientName] = useState('');
   const [community, setCommunity] = useState('');
   const [bloodPressure, setBloodPressure] = useState('');
@@ -20,6 +54,10 @@ export function RegisterVisitScreen() {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+  const bmiResult = calculateBmi(weight, height);
+  // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
 
   const handleSave = async () => {
     if (!patientName.trim() || !community.trim()) {
@@ -34,8 +72,11 @@ export function RegisterVisitScreen() {
       temperature: temperature.trim(),
       weight: weight.trim(),
       height: height.trim(),
+      // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+      bmi: bmiResult?.bmi,
     });
-    Alert.alert('Guardado localmente', 'La visita se ha guardado en el dispositivo y se sincronizará cuando haya conexión.');
+    showToast({ message: 'Visita guardada correctamente', type: 'success' });
+    // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
     setPatientName('');
     setCommunity('');
     setBloodPressure('');
@@ -99,11 +140,11 @@ export function RegisterVisitScreen() {
                   <View key={field.label} style={styles.fieldGroup}>
                     <Text style={styles.label}>{field.label}</Text>
                     <View style={[styles.inputWrapper, isFocused && styles.inputWrapperFocused]}>
-                      <Ionicons 
-                        name={field.icon} 
-                        size={18} 
-                        color={isFocused ? colors.primary : colors.textMuted} 
-                        style={styles.inputIcon} 
+                      <Ionicons
+                        name={field.icon}
+                        size={18}
+                        color={isFocused ? colors.primary : colors.textMuted}
+                        style={styles.inputIcon}
                       />
                       <TextInput
                         style={styles.input}
@@ -113,11 +154,33 @@ export function RegisterVisitScreen() {
                         placeholderTextColor={colors.textPlaceholder}
                         onFocus={() => setFocusedField(field.label)}
                         onBlur={() => setFocusedField(null)}
+                        // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+                        keyboardType={field.label === 'Peso (kg)' || field.label === 'Talla (cm)' ? 'numeric' : 'default'}
+                        // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
                       />
                     </View>
                   </View>
                 );
               })}
+
+              {/* ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) ===== */}
+              {bmiResult && (
+                <View style={[styles.bmiCard, { backgroundColor: BMI_CATEGORIES[bmiResult.category].bg }]}>
+                  <View style={styles.bmiRow}>
+                    <Ionicons name="analytics" size={20} color={BMI_CATEGORIES[bmiResult.category].color} />
+                    <Text style={[styles.bmiValue, { color: BMI_CATEGORIES[bmiResult.category].color }]}>
+                      IMC: {bmiResult.bmi}
+                    </Text>
+                    <Text style={[styles.bmiCategory, { color: BMI_CATEGORIES[bmiResult.category].color }]}>
+                      ({BMI_CATEGORIES[bmiResult.category].label})
+                    </Text>
+                  </View>
+                  <Text style={[styles.bmiRange, { color: BMI_CATEGORIES[bmiResult.category].color }]}>
+                    {BMI_CATEGORIES[bmiResult.category].range}
+                  </Text>
+                </View>
+              )}
+              {/* ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) ===== */}
             </View>
           </View>
         ))}
@@ -178,23 +241,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  primaryButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    gap: 8, 
-    backgroundColor: colors.primary, 
-    borderRadius: 16, 
-    paddingVertical: 16, 
-    marginTop: 8, 
-    shadowColor: colors.primary, 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.15, 
-    shadowRadius: 8, 
-    elevation: 2 
+  // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+  bmiCard: {
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 2,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    gap: 4,
+  },
+  bmiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bmiValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+  },
+  bmiCategory: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  bmiRange: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 28,
+  },
+  // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 16,
+    marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 2,
   },
   primaryButtonPressed: { backgroundColor: colors.primaryDark, opacity: 0.95, transform: [{ scale: 0.98 }] },
   primaryButtonText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: -0.2 },
 });
-
-

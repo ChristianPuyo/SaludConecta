@@ -4,6 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useReports } from '../../context/ReportsContext';
+// ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+import { useToast } from '../../components/Toast';
+// ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
 import { colors, shadows } from '../../theme/colors';
 import type { RiskLevel } from '../../components/RiskBadge';
 import type { CitizenTabParamList } from '../../navigation/CitizenNavigator';
@@ -21,6 +24,9 @@ function classifyRisk(symptomCount: number, hasFever: boolean): RiskLevel {
 export function ReportSymptomsScreen() {
   const navigation = useNavigation<Nav>();
   const { addReport } = useReports();
+  // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+  const { showToast } = useToast();
+  // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
   const [selected, setSelected] = useState<string[]>([]);
   const [district, setDistrict] = useState('');
   const [community, setCommunity] = useState('');
@@ -46,10 +52,9 @@ export function ReportSymptomsScreen() {
       symptoms: selected,
       risk,
     });
-    Alert.alert(
-      'Reporte enviado',
-      `La IA clasificó tu reporte como riesgo ${risk.toUpperCase()}. Gracias por ayudar a proteger a tu comunidad.`
-    );
+    // ===== INICIO MODIFICACIÓN (Iteración: Toast + IMC) =====
+    showToast({ message: 'Reporte enviado correctamente', type: 'success' });
+    // ===== FIN MODIFICACIÓN (Iteración: Toast + IMC) =====
     setSelected([]);
     setDistrict('');
     setCommunity('');
