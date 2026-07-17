@@ -54,3 +54,61 @@ export const MOCK_ALERTS: EpidemicAlert[] = [
     date: 'Ayer, 19:40',
   },
 ];
+
+export interface DistrictComparison {
+  district: string;
+  reports: number;
+  risk: RiskLevel;
+  trend: string;
+  predominantDisease: string;
+  status: string;
+  lastUpdate: string;
+}
+
+export const MOCK_DISTRICT_COMPARISON: DistrictComparison[] = [
+  {
+    district: 'Callería',
+    reports: 42,
+    risk: 'alto',
+    trend: '+25%',
+    predominantDisease: 'Dengue',
+    status: 'En alerta',
+    lastUpdate: 'Hace 8 min',
+  },
+  {
+    district: 'Yarinacocha',
+    reports: 21,
+    risk: 'medio',
+    trend: '+8%',
+    predominantDisease: 'Dengue',
+    status: 'Monitoreo',
+    lastUpdate: 'Hace 15 min',
+  },
+  {
+    district: 'Manantay',
+    reports: 18,
+    risk: 'medio',
+    trend: '+5%',
+    predominantDisease: 'Influenza',
+    status: 'Monitoreo',
+    lastUpdate: 'Hace 22 min',
+  },
+  {
+    district: 'Campoverde',
+    reports: 5,
+    risk: 'bajo',
+    trend: '-2%',
+    predominantDisease: 'Respiratorio',
+    status: 'Normal',
+    lastUpdate: 'Hace 45 min',
+  },
+  {
+    district: 'Nueva Requena',
+    reports: 2,
+    risk: 'bajo',
+    trend: '0%',
+    predominantDisease: 'Respiratorio',
+    status: 'Normal',
+    lastUpdate: 'Hace 1 hora',
+  },
+];
