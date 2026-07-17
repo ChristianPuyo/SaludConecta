@@ -27,6 +27,11 @@ export const MOCK_DISTRICT_RISK: DistrictRisk[] = [
   { district: 'Nueva Requena', risk: 'bajo', cases: 2 },
 ];
 
+export interface AlertLocation {
+  latitude: number;
+  longitude: number;
+}
+
 export interface EpidemicAlert {
   id: string;
   title: string;
@@ -34,6 +39,8 @@ export interface EpidemicAlert {
   detail: string;
   risk: RiskLevel;
   date: string;
+  location: AlertLocation;
+  detectedIssues: string[];
 }
 
 export const MOCK_ALERTS: EpidemicAlert[] = [
@@ -44,6 +51,13 @@ export const MOCK_ALERTS: EpidemicAlert[] = [
     detail: '35 reportes de fiebre en los últimos 7 días dentro del mismo sector.',
     risk: 'alto',
     date: 'Hoy, 08:12',
+    location: { latitude: -8.3892, longitude: -74.552 },
+    detectedIssues: [
+      'Fiebre alta persistente (38.5°C+)',
+      'Dolor muscular intenso',
+      'Dolor detrás de los ojos',
+      'Manchas rojas en piel',
+    ],
   },
   {
     id: 'a2',
@@ -52,5 +66,11 @@ export const MOCK_ALERTS: EpidemicAlert[] = [
     detail: '18 reportes de tos y fiebre en la última semana.',
     risk: 'medio',
     date: 'Ayer, 19:40',
+    location: { latitude: -8.2833, longitude: -74.55 },
+    detectedIssues: [
+      'Tos persistente',
+      'Fiebre moderada',
+      'Dificultad respiratoria leve',
+    ],
   },
 ];
